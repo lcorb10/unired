@@ -1,0 +1,71 @@
+{% extends "red/base.html" %}
+{% import "_comun.html" as c with context %}
+{% block title %}Mi red{% endblock %}
+{% macro persona(u, extra='') %}
+<div class="persona">{{ c.av(u) }}<div class="info"><a href="{{ url_for('red.perfil', uid=u.id) }}">{{ u.nombre }}</a>
+  <div class="t">{{ u.titular }}</div>{% if extra %}<div class="motivo">{{ extra }}</div>{% endif %}</div>{{ caller() if caller }}</div>
+{% endmacro %}
+{% block content %}
+<div class="dos-col">
+  <div>
+    <section class="caja caja-p">
+      <h2>Invitaciones {% if invitaciones %}<span class="chip rojo ms-1">{{ invitaciones | length }}</span>{% endif %}</h2>
+      {% for i in invitaciones %}
+        {% call persona(i.u, (i.comunes ~ ' contacto' ~ ('s' if i.comunes != 1 else '') ~ ' en común · ' ~ (i.fecha | hace))) %}
+        <div class="d-flex gap-2">
+          <form method="post" action="{{ url_for('red.red_accion', uid=i.u.id, accion='rechazar') }}">{{ c.csrf() }}<button class="btn btn-sm btn-plano">Ignorar</button></form>
+          <form method="post" action="{{ url_for('red.red_accion', uid=i.u.id, accion='aceptar') }}">{{ c.csrf() }}<button class="btn btn-sm btn-borde">Aceptar</button></form>
+        </div>
+        {% endcall %}
+      {% else %}<p class="muted mb-0">No tienes invitaciones pendientes.</p>{% endfor %}
+    </section>
+
+    <section class="caja caja-p">
+      <h2>Personas que quizá conozcas</h2>
+      <p class="small muted mt-n1">Se calculan recorriendo el grafo: contactos en común, misma institución y habilidades compartidas.</p>
+      <div class="row g-3">
+        {% for s in sugeridos %}
+        <div class="col-sm-6 col-lg-4">
+          <div class="caja text-center h-100 d-flex flex-column" style="overflow:hidden">
+            <div class="portada" style="height:52px"></div>
+            <div style="margin-top:-34px">{{ c.av(s.u, 'lg') }}</div>
+            <div class="px-3 pb-3 pt-1 d-flex flex-column flex-grow-1">
+              <a class="fw-bold" style="color:var(--tinta)" href="{{ url_for('red.perfil', uid=s.u.id) }}">{{ s.u.nombre }}</a>
+              <div class="small muted" style="min-height:2.6em">{{ s.u.titular }}</div>
+              <div class="small-2 muted my-2 flex-grow-1">
+                {% if s.comunes %}<div><i class="bi bi-people"></i> {{ s.comunes }} en común</div>{% endif %}
+                {% if s.instituciones %}<div><i class="bi bi-mortarboard"></i> {{ s.instituciones[0] }}</div>{% endif %}
+                {% if s.habilidades %}<div><i class="bi bi-stars"></i> {{ s.habilidades }} habilidad{{ 'es' if s.habilidades != 1 }} en común</div>{% endif %}
+              </div>
+              <form method="post" action="{{ url_for('red.red_accion', uid=s.u.id, accion='conectar') }}">{{ c.csrf() }}
+                <button class="btn btn-sm btn-borde w-100"><i class="bi bi-person-plus-fill"></i> Conectar</button></form>
+            </div>
+          </div>
+        </div>
+        {% else %}<p class="muted">Sin sugerencias por ahora. Agrega estudios y habilidades a tu perfil.</p>{% endfor %}
+      </div>
+    </section>
+  </div>
+
+  <aside class="lateral-fijo">
+    <section class="caja caja-p">
+      <h2>Mis contactos <span class="muted fw-normal">{{ contactos | length }}</span></h2>
+      {% for k in contactos %}
+        {% call persona(k.u, 'Desde ' ~ k.desde if k.desde else '') %}
+        <a class="btn btn-sm btn-plano" href="{{ url_for('red.mensajes', uid=k.u.id) }}" aria-label="Escribir a {{ k.u.nombre }}"><i class="bi bi-send"></i></a>
+        {% endcall %}
+      {% else %}<p class="muted mb-0">Aún no tienes contactos.</p>{% endfor %}
+    </section>
+    {% if enviadas %}
+    <section class="caja caja-p">
+      <h2>Enviadas</h2>
+      {% for e in enviadas %}
+        {% call persona(e.u, 'Enviada ' ~ (e.fecha | hace)) %}
+        <form method="post" action="{{ url_for('red.red_accion', uid=e.u.id, accion='cancelar') }}">{{ c.csrf() }}<button class="btn btn-sm btn-plano">Retirar</button></form>
+        {% endcall %}
+      {% endfor %}
+    </section>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

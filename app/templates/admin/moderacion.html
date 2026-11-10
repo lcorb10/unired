@@ -1,0 +1,45 @@
+{% extends "admin/base.html" %}
+{% block title %}Publicaciones y mensajes{% endblock %}
+{% block content %}
+<h1 class="mb-1">Publicaciones y mensajes</h1>
+<p class="muted mb-4">Moderación de lo que publican los usuarios. Los mensajes privados no se pueden leer desde aquí, solo se cuentan.</p>
+<div class="row g-3 mb-4">
+  {% for k, v in red_res.items() %}
+  <div class="col-6 col-md-2"><div class="card p-3"><div class="metric">{{ v }}</div><div class="metric-label">{{ k | capitalize }}</div></div></div>
+  {% endfor %}
+</div>
+<div class="card p-3 mb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div><h2 class="h6 m-0">Mensajes que se borran a las 24 h</h2>
+      <p class="small muted m-0">La app los limpia sola cada 10 minutos y cada vez que alguien abre Mensajes. Consulta que se ejecuta:
+        <code>MATCH (m:Mensaje) WHERE m.fecha &lt; datetime() - duration({hours: 24}) DETACH DELETE m</code></p></div>
+    <form method="post" action="{{ url_for('admin.limpiar_mensajes') }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <button class="btn btn-sm btn-borde"><i class="bi bi-trash3"></i> Limpiar ahora</button></form>
+  </div>
+</div>
+<div class="card p-3">
+  <h2 class="h6">Últimas publicaciones</h2>
+  <div class="table-responsive">
+  <table class="table table-sm align-top">
+    <thead class="table-light"><tr><th>Autor</th><th>Publicación</th><th>Reacciones</th><th>Comentarios</th><th></th></tr></thead>
+    <tbody>
+    {% for p in posts %}
+    <tr>
+      <td class="text-nowrap"><a href="{{ url_for('admin.usuario_perfil', uid=p.autor_id) }}">{{ p.autor }}</a><div class="small muted">{{ p.fecha | hace }}</div></td>
+      <td style="max-width: 420px">{{ p.texto | truncate(160) }}
+        {% if p.media %}<div><a class="small" href="{{ url_for('media', nombre=p.media) }}" target="_blank" rel="noopener"><i class="bi {{ 'bi-play-btn' if p.tipo_media == 'video' else 'bi-image' }}"></i> Ver {{ p.tipo_media }}</a></div>{% endif %}</td>
+      <td>{{ p.reacciones }}</td>
+      <td style="max-width: 300px">{% for k in p.comentarios %}
+        <div class="small d-flex gap-1 align-items-start"><span><b>{{ k.autor }}:</b> {{ k.texto | truncate(80) }}</span>
+          <form method="post" action="{{ url_for('admin.mod_eliminar_comentario', kid=k.id) }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+            <button class="btn btn-link btn-sm p-0 text-danger" aria-label="Eliminar comentario"><i class="bi bi-x-circle"></i></button></form></div>
+        {% else %}<span class="muted small">—</span>{% endfor %}</td>
+      <td><form method="post" action="{{ url_for('admin.mod_eliminar_publicacion', pid=p.id) }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <button class="btn btn-sm btn-outline-danger">Eliminar</button></form></td>
+    </tr>
+    {% else %}<tr><td colspan="5" class="muted">No hay publicaciones.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endblock %}

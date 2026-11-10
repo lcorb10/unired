@@ -1,0 +1,14 @@
+{% extends "auth/_marco.html" %}
+{% block title %}Iniciar sesión{% endblock %}
+{% block form %}
+<form method="post">{{ c.csrf() }}
+  <h2>Iniciar sesión</h2>
+  <p class="muted mb-4">¿Primera vez aquí? <a class="fw-bold" href="{{ url_for('auth.registro') }}">Crea tu cuenta</a></p>
+  <label class="form-label" for="email">Correo</label>
+  <input class="form-control mb-3" id="email" name="email" type="email" autocomplete="username" required autofocus value="{{ request.form.email or '' }}">
+  <label class="form-label" for="clave">Contraseña</label>
+  <input class="form-control mb-4" id="clave" name="clave" type="password" autocomplete="current-password" required>
+  <button class="btn btn-rojo w-100">Iniciar sesión</button>
+  <p class="small muted mt-4 mb-0">Los administradores entran por aquí mismo y llegan al panel de administración.</p>
+</form>
+{% endblock %}

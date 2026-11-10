@@ -1,0 +1,66 @@
+{% extends "red/base.html" %}
+{% import "_comun.html" as c with context %}
+{% block title %}Empleos{% endblock %}
+{% block content %}
+<div class="dos-col">
+  <div>
+    <section class="caja">
+      <div class="caja-titulo"><h2>Empleos para ti</h2>
+        <form class="d-flex gap-2" method="get"><input class="form-control form-control-sm" name="q" value="{{ q }}" placeholder="Cargo, empresa o ciudad" aria-label="Buscar empleos">
+          <button class="btn btn-sm btn-negro">Buscar</button></form></div>
+      <p class="small muted px-3 mt-2 mb-1" style="padding-left:18px !important">Ordenados por ajuste: cuántas de las habilidades que pide la oferta tienes en tu perfil.</p>
+      {% for j in empleos %}
+      <div class="empleo">
+        <a class="logo-emp" href="{{ url_for('red.empresa', eid=j.empresa.id) }}" aria-label="{{ j.empresa.nombre }}" style="color:#fff;text-decoration:none">{{ j.empresa.nombre | iniciales }}</a>
+        <div class="flex-grow-1 min-w-0">
+          <h3>{{ j.o.titulo }}</h3>
+          <div class="small"><a href="{{ url_for('red.empresa', eid=j.empresa.id) }}" style="color:var(--tinta)">{{ j.empresa.nombre }}</a> · {{ j.o.ubicacion }}</div>
+          <div class="small muted">{{ j.o.salario | dinero }} al mes</div>
+          <div class="d-flex flex-wrap gap-1 mt-2">
+            {% for h in j.requeridas %}<span class="chip {{ 'si' if h in j.tengo }}">{% if h in j.tengo %}<i class="bi bi-check2"></i>{% endif %}{{ h }}</span>{% endfor %}
+          </div>
+          <div class="d-flex flex-wrap gap-3 align-items-center mt-2 small">
+            <span class="ajuste {{ 'alto' if j.ajuste >= 60 }}"><span class="b"><span style="width: {{ j.ajuste }}%"></span></span>{{ j.ajuste }} % de ajuste</span>
+            {% if j.conocidos %}<span class="muted"><i class="bi bi-people-fill" style="color:var(--rojo)"></i> {{ j.conocidos }} contacto{{ 's' if j.conocidos != 1 }} trabaja{{ 'n' if j.conocidos != 1 }} ahí</span>{% endif %}
+          </div>
+        </div>
+        <div>
+          {% if j.postulado %}
+          <span class="chip si"><i class="bi bi-check2-circle"></i> Postulado</span>
+          {% else %}
+          <form method="post" action="{{ url_for('red.empleo_accion', oid=j.o.id, accion='postular') }}">{{ c.csrf() }}
+            <button class="btn btn-sm btn-rojo">Postularme</button></form>
+          {% endif %}
+        </div>
+      </div>
+      {% else %}<p class="muted px-3 pb-3" style="padding-left:18px !important">No hay ofertas abiertas{{ ' con «' ~ q ~ '»' if q }}.</p>{% endfor %}
+    </section>
+  </div>
+
+  <aside class="lateral-fijo">
+    <section class="caja caja-p" id="postulaciones">
+      <h2>Mis postulaciones</h2>
+      {% for p in postulaciones %}
+      <div class="py-2 {{ 'separa' if not loop.first }}">
+        <div class="fw-bold small">{{ p.oferta }}</div>
+        <div class="small muted"><a href="{{ url_for('red.empresa', eid=p.empresa_id) }}">{{ p.empresa }}</a> · {{ p.fecha }}</div>
+        <div class="d-flex justify-content-between align-items-center mt-1">
+          <span class="chip {{ 'si' if p.estado in ('ENTREVISTA', 'SELECCIONADO') else ('rojo' if p.estado == 'DESCARTADO' else '') }}">{{ (p.estado or 'EN_REVISION') | replace('_', ' ') | capitalize }}</span>
+          <form method="post" action="{{ url_for('red.empleo_accion', oid=p.id, accion='retirar') }}">{{ c.csrf() }}<button class="btn btn-sm btn-plano">Retirar</button></form>
+        </div>
+      </div>
+      {% else %}<p class="muted small mb-0">Aún no te has postulado.</p>{% endfor %}
+    </section>
+    <section class="caja caja-p">
+      <h2>¿Tu empresa está contratando?</h2>
+      {% if mi_empresa %}
+      <p class="small muted">Trabajas en <b>{{ mi_empresa.nombre }}</b>: puedes publicar ofertas y ver a quién se postula.</p>
+      <a class="btn btn-sm btn-borde" href="{{ url_for('red.empresa', eid=mi_empresa.id) }}">Publicar empleo</a>
+      {% else %}
+      <p class="small muted mb-2">Agrega tu experiencia actual para publicar ofertas de tu empresa.</p>
+      <a class="btn btn-sm btn-borde" href="{{ url_for('red.perfil_editar') }}#trabajo">Añadir experiencia</a>
+      {% endif %}
+    </section>
+  </aside>
+</div>
+{% endblock %}

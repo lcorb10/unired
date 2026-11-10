@@ -1,0 +1,1 @@
+Además debía consultar caminos entre usuarios y empresas, generar recomendaciones y mostrar un panel de analítica con los usuarios más influyentes, las comunidades y las habilidades más demandadas.

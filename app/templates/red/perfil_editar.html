@@ -1,0 +1,113 @@
+{% extends "red/base.html" %}
+{% import "_comun.html" as c with context %}
+{% block title %}Editar perfil{% endblock %}
+{% block content %}
+<div class="dos-col">
+  <div>
+    <section class="caja caja-p" id="datos">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h1 class="h4 m-0">Editar perfil</h1>
+        <a class="btn btn-sm btn-borde" href="{{ url_for('red.perfil', uid=p.u.id) }}">Ver mi perfil</a>
+      </div>
+      <form method="post">{{ c.csrf() }}<input type="hidden" name="accion" value="datos">
+        <div class="row g-2">
+          <div class="col-md-6"><label class="form-label">Nombre</label><input class="form-control" name="nombre" value="{{ p.u.nombre }}" required maxlength="80"></div>
+          <div class="col-md-6"><label class="form-label">Ciudad</label><input class="form-control" name="ciudad" value="{{ p.u.ciudad or '' }}" maxlength="60"></div>
+          <div class="col-md-9"><label class="form-label">Titular</label><input class="form-control" name="titular" value="{{ p.u.titular or '' }}" placeholder="Ej.: Estudiante de Ingeniería de Sistemas en Uninorte" maxlength="120"></div>
+          <div class="col-md-3"><label class="form-label">Años de experiencia</label><input class="form-control" type="number" min="0" max="60" name="anios" value="{{ p.u.anios_experiencia or 0 }}"></div>
+          <div class="col-12"><label class="form-label">Acerca de</label><textarea class="form-control" name="acerca" rows="4" maxlength="2000">{{ p.u.acerca or '' }}</textarea></div>
+        </div>
+        <button class="btn btn-rojo mt-3">Guardar datos</button>
+      </form>
+    </section>
+
+    <section class="caja caja-p" id="estudio">
+      <h2>Educación</h2>
+      {% for e in p.estudios %}
+      <div class="item-lista"><div class="ico uni"><i class="bi bi-mortarboard-fill"></i></div>
+        <div class="flex-grow-1"><b>{{ e.institucion }}</b>{{ e.titulo }}{% if e.area %}, {{ e.area }}{% endif %}
+          <div class="small muted">{{ e.inicio }}{% if e.fin %} – {{ e.fin }}{% endif %}</div></div>
+        <form method="post">{{ c.csrf() }}<input type="hidden" name="accion" value="quitar_estudio"><input type="hidden" name="id" value="{{ e.id }}">
+          <button class="btn btn-plano btn-sm" aria-label="Quitar estudio"><i class="bi bi-trash3"></i></button></form>
+      </div>
+      {% endfor %}
+      <form method="post" class="row g-2 mt-1">{{ c.csrf() }}<input type="hidden" name="accion" value="estudio">
+        <div class="col-md-6"><label class="form-label">Institución</label>
+          <input class="form-control" name="institucion" list="lista-inst" required placeholder="Universidad del Norte"></div>
+        <div class="col-md-6"><label class="form-label">Título</label><input class="form-control" name="titulo" placeholder="Ingeniería de Sistemas"></div>
+        <div class="col-md-6"><label class="form-label">Área o énfasis</label><input class="form-control" name="area" placeholder="Bases de datos"></div>
+        <div class="col-3 col-md-3"><label class="form-label">Inicio</label><input class="form-control" name="inicio" inputmode="numeric" maxlength="4" placeholder="2022"></div>
+        <div class="col-3 col-md-3"><label class="form-label">Fin</label><input class="form-control" name="fin" inputmode="numeric" maxlength="4" placeholder="2026"></div>
+        <div class="col-12"><button class="btn btn-borde"><i class="bi bi-plus-lg"></i> Añadir estudio</button></div>
+        <datalist id="lista-inst">{% for i in instituciones %}<option value="{{ i }}">{% endfor %}</datalist>
+      </form>
+    </section>
+
+    <section class="caja caja-p" id="habilidad">
+      <h2>Habilidades</h2>
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        {% for h in p.habilidades %}
+        <form method="post" class="chip">{{ c.csrf() }}<input type="hidden" name="accion" value="quitar_habilidad"><input type="hidden" name="nombre" value="{{ h.nombre }}">
+          {{ h.nombre }} · {{ h.nivel }}/5 <button class="btn btn-link p-0 text-reset" aria-label="Quitar {{ h.nombre }}"><i class="bi bi-x"></i></button></form>
+        {% else %}<span class="muted small">Aún no tienes habilidades.</span>{% endfor %}
+      </div>
+      <form method="post" class="row g-2 align-items-end">{{ c.csrf() }}<input type="hidden" name="accion" value="habilidad">
+        <div class="col-md-4"><label class="form-label">Habilidad</label>
+          <select class="form-select" name="habilidad">{% for h in habilidades %}<option>{{ h.texto }}</option>{% endfor %}</select></div>
+        <div class="col-md-4"><label class="form-label">…o escribe una nueva</label><input class="form-control" name="nueva" maxlength="40"></div>
+        <div class="col-md-2"><label class="form-label">Nivel</label>
+          <select class="form-select" name="nivel">{% for n in range(1, 6) %}<option {{ 'selected' if n == 3 }}>{{ n }}</option>{% endfor %}</select></div>
+        <div class="col-md-2"><button class="btn btn-borde w-100">Añadir</button></div>
+      </form>
+    </section>
+
+    <section class="caja caja-p" id="trabajo">
+      <h2>Experiencia actual</h2>
+      {% if p.empresa %}
+      <div class="item-lista"><div class="ico emp"><i class="bi bi-building"></i></div>
+        <div class="flex-grow-1"><b>{{ p.empresa.cargo }}</b>{{ p.empresa.nombre }}</div>
+        <form method="post">{{ c.csrf() }}<input type="hidden" name="accion" value="quitar_trabajo">
+          <button class="btn btn-plano btn-sm" aria-label="Quitar experiencia"><i class="bi bi-trash3"></i></button></form></div>
+      {% endif %}
+      <form method="post" class="row g-2 align-items-end">{{ c.csrf() }}<input type="hidden" name="accion" value="trabajo">
+        <div class="col-md-5"><label class="form-label">Empresa</label><input class="form-control" name="empresa" list="lista-emp" required></div>
+        <div class="col-md-5"><label class="form-label">Cargo</label><input class="form-control" name="cargo"></div>
+        <div class="col-md-2"><button class="btn btn-borde w-100">Guardar</button></div>
+        <datalist id="lista-emp">{% for e in empresas %}<option value="{{ e.texto }}">{% endfor %}</datalist>
+        <div class="col-12 form-text">Si la empresa no existe se crea. Quien trabaja en una empresa puede publicar sus ofertas.</div>
+      </form>
+    </section>
+
+    <section class="caja caja-p" id="proyecto">
+      <h2>Proyectos</h2>
+      {% for pr in p.proyectos %}<span class="chip me-1 mb-1">{{ pr.nombre }}</span>{% endfor %}
+      <form method="post" class="row g-2 align-items-end mt-1">{{ c.csrf() }}<input type="hidden" name="accion" value="proyecto">
+        <div class="col-md-9"><select class="form-select" name="proyecto" aria-label="Proyecto">{% for pr in proyectos %}<option value="{{ pr.id }}">{{ pr.texto }}</option>{% endfor %}</select></div>
+        <div class="col-md-3"><button class="btn btn-borde w-100">Unirme</button></div>
+      </form>
+    </section>
+  </div>
+
+  <aside class="lateral-fijo">
+    <section class="caja caja-p" id="foto">
+      <h2>Foto de perfil</h2>
+      <div class="d-flex gap-3 align-items-center">{{ c.av(p.u, 'lg', enlace=False) }}
+        <form method="post" enctype="multipart/form-data">{{ c.csrf() }}<input type="hidden" name="accion" value="foto">
+          <input class="form-control form-control-sm mb-2" type="file" name="archivo" accept="image/*" required>
+          <button class="btn btn-sm btn-borde">Subir foto</button></form></div>
+    </section>
+    <section class="caja caja-p" id="portada">
+      <h2>Portada</h2>
+      <form method="post" enctype="multipart/form-data">{{ c.csrf() }}<input type="hidden" name="accion" value="portada">
+        <input class="form-control form-control-sm mb-2" type="file" name="archivo" accept="image/*" required>
+        <button class="btn btn-sm btn-borde">Subir portada</button></form>
+    </section>
+    <section class="caja caja-p" id="clave">
+      <h2>Contraseña</h2>
+      <form method="post">{{ c.csrf() }}<input type="hidden" name="accion" value="clave">
+        <input class="form-control mb-2" type="password" name="clave" minlength="8" autocomplete="new-password" placeholder="Nueva contraseña" required>
+        <button class="btn btn-sm btn-borde">Cambiar contraseña</button></form>
+    </section>
+  </aside>
+</div>
+{% endblock %}

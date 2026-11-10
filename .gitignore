@@ -1,0 +1,15 @@
+app/venv/
+app/.env
+app/uploads/
+__pycache__/
+*.pyc
+LINK_PUBLICO.txt
+docs/node_modules/
+docs/package*.json
+video/clips/
+video/salida/
+video/narracion/
+video/prueba/
+video/vista/
+video/muestras/
+video/voz.log

@@ -1,0 +1,71 @@
+{% import "_comun.html" as c with context %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="csrf" content="{{ csrf_token() }}">
+  <title>{% block title %}Panel{% endblock %} | Administración UniRed</title>
+  <link rel="icon" href="{{ url_for('static', filename='logo.svg') }}" type="image/svg+xml">
+  <link href="{{ url_for('static', filename='vendor/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='vendor/bootstrap-icons.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='unired.css') }}" rel="stylesheet">
+  <script src="{{ url_for('static', filename='vendor/vis-network.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='vendor/chart.umd.js') }}"></script>
+</head>
+<body>
+{% set menu = [
+  ('Resumen', [('admin.inicio', 'Inicio y vecindad', 'bi-speedometer2'), ('admin.base_datos', 'Base de datos', 'bi-database-fill')]),
+  ('Gestión', [('admin.usuarios_lista', 'Usuarios', 'bi-people-fill'), ('admin.relaciones', 'Relaciones', 'bi-diagram-3-fill'),
+               ('admin.empresas_lista', 'Empresas', 'bi-building-fill'), ('admin.ofertas', 'Ofertas y postulaciones', 'bi-briefcase-fill'),
+               ('admin.moderacion', 'Publicaciones y mensajes', 'bi-shield-check')]),
+  ('Análisis del grafo', [('admin.consultas', 'Consultas del enunciado', 'bi-signpost-split-fill'),
+               ('admin.recomendaciones', 'Recomendaciones', 'bi-stars'), ('admin.analitica', 'Analítica', 'bi-bar-chart-fill')]),
+] %}
+<header class="barra">
+  <div class="interior">
+    <a class="logo" href="{{ url_for('admin.inicio') }}">{{ c.logo_svg() }}<span class="marca">Uni<b>Red</b></span></a>
+    <span class="etiqueta-admin">Administración</span>
+    {% if resumen_global %}<span class="small d-none d-md-inline" style="color:#B9B9B9">{{ resumen_global.usuarios }} usuarios · {{ resumen_global.relaciones }} relaciones en el grafo</span>{% endif %}
+    <div class="ms-auto d-flex align-items-center gap-2">
+      <a class="btn btn-sm btn-negro" style="border-color:#444" href="http://localhost:7474" target="_blank" rel="noopener" title="Solo funciona en el PC donde corre Neo4j"><i class="bi bi-box-arrow-up-right"></i> Neo4j Browser</a>
+      <form method="post" action="{{ url_for('auth.salir') }}">{{ c.csrf() }}<button class="btn btn-sm btn-rojo"><i class="bi bi-box-arrow-right"></i> Salir</button></form>
+    </div>
+  </div>
+</header>
+{{ c.avisos() }}
+<div class="admin-wrap">
+  <nav class="admin-menu" aria-label="Panel de administración">
+    {% for grupo, items in menu %}
+    <div class="grupo">{{ grupo }}</div>
+    {% for ep, txt, ic in items %}
+    <a href="{{ url_for(ep) }}" class="{{ 'activo' if request.endpoint == ep }}"><i class="bi {{ ic }}"></i>{{ txt }}</a>
+    {% endfor %}
+    {% endfor %}
+  </nav>
+  <main class="admin-main">
+    {% with msgs = get_flashed_messages(with_categories=true) %}{% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{{ c.panel_cypher() }}
+{{ c.pantalla_carga(intro=session.pop('intro', False)) }}
+<script src="{{ url_for('static', filename='vendor/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='unired.js') }}"></script>
+<script>
+  const COLORES = {{ colores | tojson }};
+  // Dibuja un grafo con vis-network. data = {nodes:[{id,label,group|color,value}], edges:[{from,to,label}]}
+  function dibujarGrafo(idDiv, data, dirigido = true, opciones = {}) {
+    const nodes = data.nodes.map(n => ({...n, color: n.color || COLORES[n.group] || '#999',
+                                         title: (n.group ? n.group + ': ' : '') + n.label}));
+    const edges = data.edges.map(e => ({...e, color: {color: '#BDB8B0', highlight: '#C8102E'}, font: {size: 9, align: 'middle'},
+                                         arrows: dirigido ? {to: {scaleFactor: .5}} : undefined}));
+    return new vis.Network(document.getElementById(idDiv),
+      {nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges)},
+      Object.assign({nodes: {shape: 'dot', size: 14, font: {size: 13, face: 'Figtree'}, scaling: {min: 10, max: 34}},
+       physics: {stabilization: {iterations: 150}}, interaction: {hover: true}}, opciones));
+  }
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

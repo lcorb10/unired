@@ -1,0 +1,47 @@
+{% import "_comun.html" as c with context %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <title>{% block title %}{% endblock %} | UniRed</title>
+  <link rel="icon" href="{{ url_for('static', filename='logo.svg') }}" type="image/svg+xml">
+  <link href="{{ url_for('static', filename='vendor/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='vendor/bootstrap-icons.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='unired.css') }}" rel="stylesheet">
+  <style>
+    .red-svg line { stroke: #fff; stroke-opacity: .22; stroke-width: 1.4; }
+    .red-svg .n { fill: #fff; } .red-svg .r { fill: #C8102E; } .red-svg .a { fill: #FFC72C; }
+    .red-svg .camino { stroke: #FFC72C; stroke-opacity: .95; stroke-width: 2.6; stroke-dasharray: 260; stroke-dashoffset: 260;
+      animation: trazo 2.4s .5s cubic-bezier(.6, .1, .2, 1) forwards; }
+    @keyframes trazo { to { stroke-dashoffset: 0; } }
+    @media (prefers-reduced-motion: reduce) { .red-svg .camino { animation: none; stroke-dashoffset: 0; } }
+  </style>
+</head>
+<body>
+{{ c.avisos() }}
+<main class="acceso">
+  <section class="lado-marca">
+    <a class="logo" href="{{ url_for('auth.entrar') }}">{{ c.logo_svg() }}<span class="marca">Uni<b>Red</b></span></a>
+    <div style="position:relative;z-index:1">
+      <h1>{% block lema %}Tu red empieza en el campus.{% endblock %}</h1>
+      <p>{% block bajada %}Conecta con compañeros, egresados y empresas. Muestra tus estudios, comparte tus proyectos y encuentra empleo a través de las personas que ya conoces.{% endblock %}</p>
+    </div>
+    <svg class="red-svg" viewBox="0 0 400 300" aria-hidden="true">
+      <line x1="40" y1="230" x2="120" y2="150"/><line x1="120" y1="150" x2="210" y2="190"/><line x1="210" y1="190" x2="290" y2="90"/>
+      <line x1="290" y1="90" x2="370" y2="150"/><line x1="120" y1="150" x2="170" y2="60"/><line x1="170" y1="60" x2="290" y2="90"/>
+      <line x1="210" y1="190" x2="250" y2="270"/><line x1="250" y1="270" x2="370" y2="230"/><line x1="370" y1="150" x2="370" y2="230"/>
+      <line x1="40" y1="230" x2="130" y2="280"/><line x1="130" y1="280" x2="210" y2="190"/>
+      <polyline class="camino" fill="none" points="40,230 120,150 210,190 290,90 370,150"/>
+      <circle class="r" cx="40" cy="230" r="9"/><circle class="n" cx="120" cy="150" r="6"/><circle class="n" cx="210" cy="190" r="6"/>
+      <circle class="n" cx="170" cy="60" r="4.5"/><circle class="n" cx="290" cy="90" r="6"/><circle class="n" cx="250" cy="270" r="4.5"/>
+      <circle class="n" cx="130" cy="280" r="4"/><circle class="n" cx="370" cy="230" r="4.5"/><circle class="a" cx="370" cy="150" r="10"/>
+    </svg>
+    <div class="small" style="color:#9b9b9b;position:relative;z-index:1">Proyecto de Bases de Datos · Universidad del Norte</div>
+  </section>
+  <section class="lado-form">{% block form %}{% endblock %}</section>
+</main>
+<script src="{{ url_for('static', filename='unired.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+{% extends "red/base.html" %}
+{% import "_comun.html" as c with context %}
+{% block title %}{{ e.e.nombre }}{% endblock %}
+{% block content %}
+<div class="dos-col">
+  <div>
+    <section class="caja perfil-cab">
+      <div class="portada grande" style="height:120px"></div>
+      <div class="logo-emp" style="position:absolute;left:24px;top:70px;width:96px;height:96px;border-radius:14px;background:var(--negro);color:#fff;display:grid;place-items:center;font-family:Bricolage,sans-serif;font-size:2rem;font-weight:700;border:4px solid #fff">{{ e.e.nombre | iniciales }}</div>
+      <div class="cuerpo" style="padding-top:60px">
+        <h1>{{ e.e.nombre }}</h1>
+        <div class="titular">{{ e.e.sector or 'Empresa' }}{% if e.e.ciudad %} · {{ e.e.ciudad }}{% endif %}</div>
+        <div class="small muted">{{ e.empleados | length }} persona{{ 's' if e.empleados | length != 1 }} en UniRed trabaja{{ 'n' if e.empleados | length != 1 }} aquí
+          {% set mis = e.empleados | selectattr('contacto') | list %}{% if mis %} · <b style="color:var(--rojo)">{{ mis | length }} son tus contactos</b>{% endif %}</div>
+      </div>
+    </section>
+
+    <section class="caja caja-p">
+      <h2>Ofertas</h2>
+      {% for o in e.ofertas %}
+      <div class="d-flex justify-content-between align-items-center gap-2 py-2 {{ 'separa' if not loop.first }}">
+        <div><b>{{ o.titulo }}</b><div class="small muted">{{ o.ubicacion }} · {{ o.salario | dinero }}</div></div>
+        <div class="d-flex gap-2 align-items-center">
+          <span class="chip {{ 'si' if o.estado == 'ABIERTA' }}">{{ 'Abierta' if o.estado == 'ABIERTA' else 'Cerrada' }}</span>
+          {% if e.trabajo_aqui %}
+          <form method="post" action="{{ url_for('red.oferta_gestion', eid=e.e.id, oid=o.id, accion='cerrar' if o.estado == 'ABIERTA' else 'abrir') }}">{{ c.csrf() }}
+            <button class="btn btn-sm btn-plano">{{ 'Cerrar' if o.estado == 'ABIERTA' else 'Reabrir' }}</button></form>
+          {% endif %}
+        </div>
+      </div>
+      {% else %}<p class="muted mb-0">Esta empresa no ha publicado ofertas.</p>{% endfor %}
+    </section>
+
+    {% if e.trabajo_aqui %}
+    <section class="caja caja-p">
+      <h2>Postulantes</h2>
+      <p class="small muted">Solo lo ven las personas que trabajan en {{ e.e.nombre }}. «Cumple» = habilidades requeridas que el candidato tiene.</p>
+      {% for p in postulantes %}
+      <div class="persona {{ 'separa' if not loop.first }}">{{ c.av(p.u) }}
+        <div class="info"><a href="{{ url_for('red.perfil', uid=p.u.id) }}">{{ p.u.nombre }}</a>
+          <div class="t">{{ p.oferta }} · cumple {{ p.cumple }}/{{ p.requeridas }}</div></div>
+        <form method="post" action="{{ url_for('red.oferta_gestion', eid=e.e.id, oid=p.oferta_id, accion='estado') }}" class="d-flex gap-1">{{ c.csrf() }}
+          <input type="hidden" name="u" value="{{ p.u.id }}">
+          <select name="estado" class="form-select form-select-sm" onchange="this.form.submit()" aria-label="Estado de la postulación">
+            {% for est in ['EN_REVISION', 'ENTREVISTA', 'SELECCIONADO', 'DESCARTADO'] %}<option value="{{ est }}" {{ 'selected' if p.estado == est }}>{{ est | replace('_', ' ') | capitalize }}</option>{% endfor %}
+          </select></form>
+      </div>
+      {% else %}<p class="muted mb-0">Nadie se ha postulado todavía.</p>{% endfor %}
+    </section>
+
+    <section class="caja caja-p">
+      <h2>Publicar una oferta</h2>
+      <form method="post" action="{{ url_for('red.empresa_oferta', eid=e.e.id) }}" class="row g-2">{{ c.csrf() }}
+        <div class="col-md-6"><label class="form-label">Cargo</label><input class="form-control" name="titulo" required maxlength="120"></div>
+        <div class="col-md-3"><label class="form-label">Ubicación</label><input class="form-control" name="ubicacion" value="{{ e.e.ciudad or '' }}"></div>
+        <div class="col-md-3"><label class="form-label">Salario (COP)</label><input class="form-control" type="number" name="salario" min="0" step="100000" value="4000000"></div>
+        <div class="col-12"><label class="form-label">Habilidades requeridas</label>
+          <div class="d-flex flex-wrap gap-2">{% for h in habilidades %}
+            <label class="chip" style="cursor:pointer"><input type="checkbox" class="form-check-input m-0" name="habilidades" value="{{ h.texto }}"> {{ h.texto }}</label>{% endfor %}</div></div>
+        <div class="col-12"><button class="btn btn-rojo">Publicar oferta</button></div>
+      </form>
+    </section>
+    {% endif %}
+  </div>
+
+  <aside class="lateral-fijo">
+    <section class="caja caja-p">
+      <h2>Trabajan aquí</h2>
+      {% for x in e.empleados %}
+      <div class="persona">{{ c.av(x.u, 'sm') }}<div class="info"><a href="{{ url_for('red.perfil', uid=x.u.id) }}">{{ x.u.nombre }}</a>
+        <div class="t">{{ x.cargo }}{% if x.contacto %} · <span style="color:var(--rojo)">contacto</span>{% endif %}</div></div></div>
+      {% else %}<p class="muted small mb-0">Nadie registrado todavía.</p>{% endfor %}
+    </section>
+  </aside>
+</div>
+{% endblock %}

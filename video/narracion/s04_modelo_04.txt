@@ -1,0 +1,1 @@
+Algunas decisiones importantes: la habilidad es un nodo y no un texto, así conecta usuarios, ofertas y proyectos. El nivel de una habilidad o el estado de una postulación viven en la relación, porque pertenecen al vínculo y no a uno de los nodos.

@@ -1,0 +1,1 @@
+En los próximos minutos vamos a explicar qué es una base de datos de grafos, cómo modelamos la red, qué scripts y consultas usamos, y cómo se ve todo funcionando.

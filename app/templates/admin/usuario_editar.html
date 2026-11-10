@@ -1,0 +1,12 @@
+{% extends "admin/base.html" %}
+{% block title %}Editar usuario{% endblock %}
+{% block content %}
+<h1 class="h3 mb-4">Editar usuario</h1>
+<div class="card p-3" style="max-width: 520px">
+  <form method="post">
+    {% include "admin/_form_usuario.html" %}
+    <button class="btn btn-primary">Guardar cambios</button>
+    <a class="btn btn-link" href="{{ url_for('admin.usuario_perfil', uid=uid) }}">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

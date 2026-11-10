@@ -1,0 +1,90 @@
+{% extends "admin/base.html" %}
+{% import "admin/_macros.html" as m with context %}
+{% block title %}Base de datos{% endblock %}
+{% block content %}
+<h1 class="mb-1">Base de datos</h1>
+<p class="muted mb-4">Lo que hay guardado en Neo4j ahora mismo: etiquetas, relaciones, el modelo real y una consola de solo lectura.</p>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-5"><div class="card p-3 h-100">
+    <h2 class="h6">Nodos por etiqueta</h2>
+    <table class="table table-sm mb-0">{% for e in etiquetas %}
+      <tr><td><span class="punto" style="background: {{ colores.get(e.etiqueta, '#999') }}"></span>:{{ e.etiqueta }}</td><td class="text-end fw-bold">{{ e.total }}</td></tr>{% endfor %}
+    </table>
+  </div></div>
+  <div class="col-lg-7"><div class="card p-3 h-100">
+    <h2 class="h6">Relaciones por tipo</h2>
+    <table class="table table-sm mb-0">{% for r in relaciones %}
+      <tr><td><code>[:{{ r.tipo }}]</code></td>
+        <td class="small muted">{% for s in esquema if s.rel == r.tipo %}(:{{ s.desde }})→(:{{ s.hacia }}){{ ', ' if not loop.last }}{% endfor %}</td>
+        <td class="text-end fw-bold">{{ r.total }}</td></tr>{% endfor %}
+    </table>
+  </div></div>
+</div>
+
+<div class="card p-3 mb-4 consola" id="consola">
+  <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2">
+    <h2 class="h6 m-0">Consola Cypher</h2>
+    <span class="small muted">Solo lectura: Neo4j rechaza CREATE, SET o DELETE desde aquí. Máximo 300 filas.</span>
+  </div>
+  <form method="post" action="{{ url_for('admin.base_datos') }}#consola" class="mt-2"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    <textarea name="cypher" rows="5" class="form-control" spellcheck="false" aria-label="Consulta Cypher">{{ consulta or 'MATCH (a)-[r]->(b) RETURN a, r, b LIMIT 100' }}</textarea>
+    <div class="d-flex flex-wrap gap-2 mt-2 align-items-center">
+      <button class="btn btn-rojo"><i class="bi bi-play-fill"></i> Ejecutar</button>
+      <span class="small muted">Ejemplos:</span>
+      {% for nombre, q in ejemplos %}<button type="button" class="btn btn-sm btn-plano border" data-ejemplo="{{ q }}">{{ nombre }}</button>{% endfor %}
+    </div>
+  </form>
+  {% if resultado %}
+    {% if resultado.error %}
+      <div class="alert alert-danger mt-3 mb-0"><b>Neo4j respondió:</b> {{ resultado.error }}</div>
+    {% else %}
+      <div class="small muted mt-3">{{ resultado.filas | length }} fila{{ 's' if resultado.filas | length != 1 }}</div>
+      {% if resultado.grafo %}<div id="g-res" class="grafo bajo mt-2"></div>{{ m.leyenda() }}{% endif %}
+      <div class="table-responsive mt-2" style="max-height: 420px">
+        <table class="table table-sm table-hover align-top">
+          <thead class="table-light"><tr>{% for col in resultado.cols %}<th>{{ col }}</th>{% endfor %}</tr></thead>
+          <tbody>{% for fila in resultado.filas %}<tr>{% for v in fila %}<td>
+            {% if v is mapping and v.tipo in ('nodo', 'rel') %}
+              <b>{{ ':' ~ v.etiqueta if v.tipo == 'nodo' else '[:' ~ v.etiqueta ~ ']' }}</b>
+              <div class="prop">{{ v.props | tojson_cy }}</div>
+            {% elif v is iterable and v is not string and v is not mapping %}{{ v | tojson_cy }}
+            {% elif v is mapping %}<span class="prop">{{ v | tojson_cy }}</span>
+            {% elif v is none %}<span class="muted">null</span>{% else %}{{ v }}{% endif %}
+          </td>{% endfor %}</tr>{% endfor %}</tbody>
+        </table>
+      </div>
+    {% endif %}
+  {% endif %}
+</div>
+
+<div class="card p-3 mb-4">
+  <h2 class="h6">El grafo completo</h2>
+  <p class="small muted mt-0">Todas las relaciones guardadas (sin los mensajes privados). Arrastra, acerca con la rueda y pasa el mouse por un nodo para ver qué es.</p>
+  <div id="g-todo" class="grafo" style="height: 620px"></div>
+  {{ m.leyenda() }}
+</div>
+
+<div class="card p-3">
+  <h2 class="h6">Restricciones de unicidad</h2>
+  <div class="d-flex flex-wrap gap-2">{% for r in restricciones %}<span class="chip">{{ r.name }}: :{{ r.labelsOrTypes | join(',') }}({{ r.properties | join(',') }})</span>{% endfor %}</div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  document.querySelectorAll('[data-ejemplo]').forEach(b => b.addEventListener('click', () => {
+    const t = document.querySelector('#consola textarea'); t.value = b.dataset.ejemplo; t.focus();
+  }));
+  document.querySelector('#consola textarea').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) e.target.form.submit();
+  });
+  {
+    {% if not resultado and not consulta %}const listo = UNIRED.cargando('Dibujando el grafo completo…');{% else %}const listo = () => {};{% endif %}
+    const red = dibujarGrafo('g-todo', {{ grafo | tojson }}, true, {physics: {stabilization: {iterations: 250}, barnesHut: {gravitationalConstant: -5000, springLength: 110}}});
+    const inicio = Date.now();
+    red.once('stabilizationIterationsDone', () => setTimeout(listo, Math.max(0, 2600 - (Date.now() - inicio))));
+    setTimeout(listo, 9000);
+  }
+  {% if resultado and resultado.grafo %}dibujarGrafo('g-res', {{ resultado.grafo | tojson }});{% endif %}
+</script>
+{% endblock %}

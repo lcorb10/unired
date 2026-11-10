@@ -1,0 +1,9 @@
+{% extends "auth/_marco.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block form %}
+<div style="max-width: 420px">
+  <h2>{{ titulo }}</h2>
+  <p class="muted">{{ texto }}</p>
+  <a class="btn btn-rojo" href="{{ url_for('red.inicio') }}">Ir al inicio</a>
+</div>
+{% endblock %}

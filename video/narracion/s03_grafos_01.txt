@@ -1,0 +1,1 @@
+Los nodos son las entidades, por ejemplo un usuario o una empresa, y llevan una etiqueta y propiedades.

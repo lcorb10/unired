@@ -1,0 +1,1 @@
+El primero define las restricciones de unicidad: el id de cada nodo y el correo del usuario no se pueden repetir. Eso además crea índices que aceleran las búsquedas.

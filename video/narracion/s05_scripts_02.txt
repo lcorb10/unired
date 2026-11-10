@@ -1,0 +1,1 @@
+El segundo carga los datos de ejemplo: veinte usuarios, seis empresas, dieciséis habilidades, ocho proyectos y diez ofertas, con todas sus relaciones.

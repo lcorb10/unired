@@ -1,0 +1,39 @@
+{% extends "admin/base.html" %}
+{% import "admin/_macros.html" as m with context %}
+{% block title %}Ofertas{% endblock %}
+{% block content %}
+<h1 class="h3 mb-4">Ofertas laborales</h1>
+<div class="row g-4">
+  <div class="col-lg-6"><div class="card p-3 h-100">
+    <h2 class="h6">Publicar oferta <code>PUBLICA</code> + <code>REQUIERE</code></h2>
+    <form method="post" action="{{ url_for('admin.oferta_crear') }}">
+      <div class="mb-2">{{ m.select('e', empresas, None, 'Empresa') }}</div>
+      <input name="titulo" class="form-control mb-2" placeholder="Título de la oferta" required>
+      <div class="row g-2 mb-2">
+        <div class="col"><input name="ubicacion" class="form-control" placeholder="Ubicación"></div>
+        <div class="col"><input name="salario" type="number" step="500000" min="0" value="5000000"
+                                class="form-control" title="Salario mensual (COP)"></div>
+      </div>
+      <div class="mb-3">{{ m.select('habilidades', habilidades, None, 'Habilidades requeridas (Ctrl/Cmd + clic)', multiple=True) }}</div>
+      <button class="btn btn-primary">Publicar</button>
+    </form>
+  </div></div>
+
+  <div class="col-lg-6"><div class="card p-3 h-100">
+    <h2 class="h6">Postularse <code>POSTULA_A</code></h2>
+    <form method="post" action="{{ url_for('admin.oferta_postular') }}">
+      <div class="mb-2">{{ m.select('u', usuarios, uid, 'Candidato') }}</div>
+      <div class="mb-3">{{ m.select('o', abiertas, None, 'Oferta abierta') }}</div>
+      <button class="btn btn-primary">Postular</button>
+    </form>
+    <hr>
+    <form method="get" class="mb-2">{{ m.select('u', usuarios, uid, 'Ver postulaciones de', auto=True) }}</form>
+    {{ m.tabla(postulaciones, 'Sin postulaciones.') }}
+  </div></div>
+
+  <div class="col-12"><div class="card p-3">
+    <h2 class="h6">Todas las ofertas</h2>
+    {{ m.tabla(filas) }}
+  </div></div>
+</div>
+{% endblock %}

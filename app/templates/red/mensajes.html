@@ -1,0 +1,84 @@
+{% extends "red/base.html" %}
+{% import "_comun.html" as c with context %}
+{% block title %}Mensajes{% endblock %}
+{% block content %}
+<div class="caja mensajeria {{ 'con-hilo' if otro }}">
+  <div class="convs">
+    <div class="p-3 pb-2"><h1 class="h5 m-0">Mensajes</h1>
+      <div class="small muted">Solo con tus contactos. Se borran a las {{ horas }} h.</div></div>
+    {% for cv in convs %}
+    <a class="conv {{ 'activa' if otro and otro.id == cv.u.id }}" href="{{ url_for('red.mensajes', uid=cv.u.id) }}">
+      {{ c.av(cv.u, 'md', enlace=False) }}
+      <div class="flex-grow-1 min-w-0" style="min-width:0">
+        <div class="d-flex justify-content-between gap-2"><b class="text-truncate">{{ cv.u.nombre }}</b>
+          <span class="small-2 muted text-nowrap">{{ cv.fecha | hace if cv.fecha }}</span></div>
+        <div class="d-flex justify-content-between gap-2"><div class="ult">{{ cv.texto or cv.u.titular }}</div>
+          {% if cv.sin_leer %}<span class="nuevo">{{ cv.sin_leer }}</span>{% endif %}</div>
+      </div>
+    </a>
+    {% else %}<p class="muted p-3">Conecta con alguien para poder escribirle.</p>{% endfor %}
+  </div>
+
+  <div class="hilo">
+    {% if otro %}
+    <div class="hilo-cab">
+      <a class="btn btn-sm btn-plano d-md-none" href="{{ url_for('red.mensajes') }}" aria-label="Volver"><i class="bi bi-arrow-left"></i></a>
+      {{ c.av(otro, 'sm') }}<div><a class="fw-bold" style="color:var(--tinta)" href="{{ url_for('red.perfil', uid=otro.id) }}">{{ otro.nombre }}</a>
+        <div class="small-2 muted">{{ otro.titular }}</div></div>
+    </div>
+    <div class="aviso-24"><i class="bi bi-clock-history"></i> Los mensajes se eliminan automáticamente {{ horas }} horas después de enviarse.</div>
+    <div class="hilo-cuerpo" id="hilo" aria-live="polite">
+      {% for m in hilo %}<div class="msg {{ 'mio' if m.mio }}" data-fecha="{{ m.fecha | iso }}">{{ m.texto }}<span class="h">{{ m.fecha | hora }}</span></div>
+      {% else %}<p class="muted text-center my-auto" id="vacio">Escríbele a {{ otro.nombre.split()[0] }}. Nadie más puede ver esta conversación.</p>{% endfor %}
+    </div>
+    <form class="hilo-pie" id="form-msg">
+      <textarea class="form-control" name="texto" rows="1" maxlength="2000" placeholder="Escribe un mensaje…" aria-label="Mensaje" required></textarea>
+      <button class="btn btn-rojo" aria-label="Enviar"><i class="bi bi-send-fill"></i></button>
+    </form>
+    {% else %}
+    <div class="d-grid h-100" style="place-items:center"><div class="text-center muted p-4">
+      <i class="bi bi-chat-dots" style="font-size:2.4rem;color:var(--rojo)"></i>
+      <p class="mt-2 mb-0">Elige una conversación de la lista.</p></div></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{% if otro %}
+<script>
+(() => {
+  const hilo = document.getElementById('hilo'), form = document.getElementById('form-msg');
+  const ta = form.querySelector('textarea'), url = {{ url_for('red.api_mensajes', uid=otro.id) | tojson }};
+  const vistos = new Set();
+  const ultima = () => { const m = hilo.querySelectorAll('.msg'); return m.length ? m[m.length - 1].dataset.fecha : ''; };
+  const abajo = () => { hilo.scrollTop = hilo.scrollHeight; };
+  function pintar(m) {
+    if (vistos.has(m.id)) return; vistos.add(m.id);
+    document.getElementById('vacio')?.remove();
+    const d = document.createElement('div');
+    d.className = 'msg' + (m.mio ? ' mio' : ''); d.dataset.fecha = m.fecha; d.textContent = m.texto;
+    const h = document.createElement('span'); h.className = 'h'; h.textContent = m.hora; d.append(h);
+    hilo.append(d); abajo();
+  }
+  abajo();
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const texto = ta.value.trim(); if (!texto) return;
+    ta.value = '';
+    const fd = new FormData(); fd.append('texto', texto); fd.append('csrf', UNIRED.csrf);
+    const r = await fetch(url, { method: 'POST', body: fd });
+    const j = await r.json();
+    if (r.ok) pintar(j); else { ta.value = texto; alert(j.error || 'No se pudo enviar.'); }
+  });
+  ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); } });
+  // Mensajes nuevos cada 3 s (sin recargar la página).
+  setInterval(async () => {
+    if (document.hidden) return;
+    const desde = ultima();
+    const r = await fetch(url + (desde ? '?desde=' + encodeURIComponent(desde) : ''));
+    if (r.ok) (await r.json()).forEach(pintar);
+  }, 3000);
+})();
+</script>
+{% endif %}
+{% endblock %}

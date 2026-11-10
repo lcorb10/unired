@@ -1,0 +1,1 @@
+Lo que hace especial a Neo for yei es la adyacencia sin índices: cada nodo apunta directamente a sus relaciones. Recorrer una conexión cuesta lo mismo sin importar cuántos datos haya en total.

@@ -1,0 +1,67 @@
+{# Piezas compartidas por el lado de usuarios y el panel de administración. #}
+{% macro logo_svg() %}
+<svg viewBox="0 0 36 36" aria-hidden="true"><rect width="36" height="36" rx="9" fill="#C8102E"/>
+  <path d="M11 10v9.5a7 7 0 0 0 14 0V10" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/>
+  <circle cx="11" cy="10" r="3.4" fill="#fff"/><circle cx="25" cy="10" r="3.4" fill="#FFC72C"/>
+  <circle cx="18" cy="26.5" r="2.6" fill="#fff"/></svg>
+{% endmacro %}
+
+{% macro av(u, tam='', enlace=True) %}
+{%- set u = u or {} -%}
+{%- set cuerpo -%}
+<span class="av {{ 'av-' ~ tam if tam }}" style="--c: {{ (u.id or u.nombre or '?') | color_av }}">
+  {%- if u.foto %}<img src="{{ url_for('media', nombre=u.foto) }}" alt="" loading="lazy">{% else %}{{ u.nombre | iniciales }}{% endif -%}
+</span>
+{%- endset -%}
+{%- if enlace and u.id and rol == 'usuario' %}<a href="{{ url_for('red.perfil', uid=u.id) }}" aria-label="Perfil de {{ u.nombre }}">{{ cuerpo }}</a>{% else %}{{ cuerpo }}{% endif -%}
+{% endmacro %}
+
+{% macro csrf() %}<input type="hidden" name="csrf" value="{{ csrf_token() }}">{% endmacro %}
+
+{% macro avisos() %}
+{% with msgs = get_flashed_messages(with_categories=true) %}{% if msgs %}
+<div class="avisos" role="status">
+  {% for cat, m in msgs %}
+  <div class="aviso {{ cat }}"><i class="bi {{ 'bi-exclamation-circle-fill' if cat in ('danger', 'warning') else 'bi-check-circle-fill' }}"></i>
+    <span>{{ m }}</span><button type="button" aria-label="Cerrar" onclick="this.parentElement.remove()"><i class="bi bi-x-lg"></i></button></div>
+  {% endfor %}
+</div>
+{% endif %}{% endwith %}
+{% endmacro %}
+
+{% macro panel_cypher() %}
+{% if modo_demo or rol == 'admin' %}
+{% set q_pag = g.cypher or [] %}
+{% set q_prev = cy_prev.consultas if cy_prev else [] %}
+<button class="cy-fab" type="button" data-cy-abrir aria-controls="cy-panel">
+  <i class="bi bi-diagram-3-fill"></i>Ver Cypher <span class="n">{{ q_pag | length + q_prev | length }}</span></button>
+<div class="cy-velo" data-cy-cerrar hidden></div>
+<aside class="cy-panel" id="cy-panel" aria-label="Consultas Cypher ejecutadas" aria-hidden="true">
+  <header>
+    <div><h2>Cypher ejecutado</h2>
+      <p>Consultas reales que esta pantalla le envió a Neo4j, con sus parámetros.</p></div>
+    <button class="btn btn-sm btn-negro" type="button" data-cy-cerrar aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+  </header>
+  <div class="cuerpo">
+    {% if q_prev %}
+    <h3><i class="bi bi-lightning-charge-fill"></i> Última acción <code>POST {{ cy_prev.ruta }}</code></h3>
+    {% for c in q_prev %}<div class="cy-stmt"><pre class="cy">{{ c.q }}</pre>{% if c.p != '{}' %}<div class="params">{{ c.p }}</div>{% endif %}<button type="button" data-copiar>Copiar</button></div>{% endfor %}
+    {% endif %}
+    <h3><i class="bi bi-eye-fill"></i> Esta página <code>GET {{ request.path }}</code></h3>
+    {% for c in q_pag %}<div class="cy-stmt"><pre class="cy">{{ c.q }}</pre>{% if c.p %}<div class="params">{{ c.p | tojson_cy }}</div>{% endif %}<button type="button" data-copiar>Copiar</button></div>
+    {% else %}<p class="small" style="color:#9b9b9b">Esta pantalla no necesitó consultas.</p>{% endfor %}
+  </div>
+</aside>
+{% endif %}
+{% endmacro %}
+
+{# Pantalla de carga con la animación del logo (hecha en Flow). Solo donde hay espera real:
+   al entrar (intro=True, una vez por sesión), al subir un video y mientras se dibuja el grafo completo. #}
+{% macro pantalla_carga(intro=False) %}
+<div class="carga {{ 'intro' if intro }}" id="carga" {% if not intro %}hidden{% endif %} aria-hidden="true">
+  <video muted playsinline preload="{{ 'auto' if intro else 'none' }}" poster="{{ url_for('static', filename='carga_final.jpg') if not intro }}"
+         src="{{ url_for('static', filename='carga.mp4') }}" {% if intro %}autoplay{% endif %}></video>
+  <div class="carga-texto" data-carga-texto></div>
+  {% if intro %}<button type="button" class="carga-saltar" data-carga-saltar>Saltar <i class="bi bi-skip-end-fill"></i></button>{% endif %}
+</div>
+{% endmacro %}

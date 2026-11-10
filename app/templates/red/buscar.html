@@ -1,0 +1,39 @@
+{% extends "red/base.html" %}
+{% import "_comun.html" as c with context %}
+{% block title %}Buscar{% endblock %}
+{% block content %}
+<div class="dos-col">
+  <div>
+    {% if not r %}
+    <section class="caja caja-p"><h1 class="h5">Buscar</h1><p class="muted mb-0">Escribe un nombre, una empresa, un cargo o una habilidad (por ejemplo «Python») en la barra superior.</p></section>
+    {% else %}
+    <section class="caja caja-p">
+      <h2>Personas</h2>
+      {% for x in r.personas %}
+      <div class="persona {{ 'separa' if not loop.first }}">{{ c.av(x.u) }}
+        <div class="info"><a href="{{ url_for('red.perfil', uid=x.u.id) }}">{{ x.u.nombre }}</a><div class="t">{{ x.u.titular }} · {{ x.u.ciudad }}</div></div></div>
+      {% else %}<p class="muted mb-0">Nadie coincide con «{{ q }}».</p>{% endfor %}
+    </section>
+    <section class="caja caja-p">
+      <h2>Empleos</h2>
+      {% for x in r.empleos %}
+      <div class="py-2 {{ 'separa' if not loop.first }}"><b>{{ x.o.titulo }}</b>
+        <div class="small muted"><a href="{{ url_for('red.empresa', eid=x.empresa.id) }}">{{ x.empresa.nombre }}</a> · {{ x.o.ubicacion }}</div></div>
+      {% else %}<p class="muted mb-0">Ningún empleo abierto coincide.</p>{% endfor %}
+      {% if r.empleos %}<a class="small fw-bold" href="{{ url_for('red.empleos', q=q) }}">Ver en Empleos</a>{% endif %}
+    </section>
+    {% endif %}
+  </div>
+  <aside class="lateral-fijo">
+    {% if r %}
+    <section class="caja caja-p">
+      <h2>Empresas</h2>
+      {% for x in r.empresas %}
+      <div class="py-2 {{ 'separa' if not loop.first }}"><a class="fw-bold" href="{{ url_for('red.empresa', eid=x.e.id) }}">{{ x.e.nombre }}</a>
+        <div class="small muted">{{ x.e.sector }} · {{ x.e.ciudad }}</div></div>
+      {% else %}<p class="muted small mb-0">Ninguna empresa coincide.</p>{% endfor %}
+    </section>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

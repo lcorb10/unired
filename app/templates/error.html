@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sin conexión con Neo4j | UniRed</title>
+  <link href="{{ url_for('static', filename='vendor/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='unired.css') }}" rel="stylesheet"></head>
+<body>
+<main class="pagina" style="max-width: 720px">
+  <div class="caja caja-p">
+    <h1 class="h4" style="color: var(--rojo)">No se pudo conectar a Neo4j</h1>
+    <p>La aplicación intentó conectarse a <code>{{ uri }}</code>.</p>
+    <ol>
+      <li>Verifica que Neo4j esté encendido (con <code>iniciar.bat</code>, Neo4j Desktop en <b>Running</b> o tu instancia de AuraDB activa).</li>
+      <li>Revisa que <code>app/.env</code> tenga la URI, el usuario y la contraseña correctos.</li>
+      <li>Recarga esta página.</li>
+    </ol>
+    <details><summary class="muted">Detalle técnico</summary><pre class="small mt-2">{{ detalle }}</pre></details>
+  </div>
+</main>
+</body>
+</html>

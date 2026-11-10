@@ -1,0 +1,1 @@
+Las contraseñas se guardan con hash, todos los formularios llevan un token ce ese erre efe, y los mensajes privados se borran solos a las veinticuatro horas para no llenar la base.

@@ -1,0 +1,1 @@
+El enunciado pedía una aplicación para gestionar una red profesional: usuarios, empresas, habilidades, proyectos y ofertas laborales.

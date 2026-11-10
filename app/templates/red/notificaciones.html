@@ -1,0 +1,29 @@
+{% extends "red/base.html" %}
+{% import "_comun.html" as c with context %}
+{% block title %}Notificaciones{% endblock %}
+{% block content %}
+<div class="dos-col">
+  <section class="caja">
+    <div class="caja-titulo pb-2"><h1 class="h5 m-0">Notificaciones</h1></div>
+    {% for n in lista %}
+      {% set nueva = n.nueva %}
+      {% if n.tipo == 'solicitud' %}{% set destino = url_for('red.mi_red') %}{% else %}{% set destino = url_for('red.publicacion', pid=n.ref) %}{% endif %}
+      {% if n.tipo == 'reaccion' %}{% set info = reacciones_info[n.extra] %}{% endif %}
+      <a class="notif {{ 'nueva' if nueva }}" href="{{ destino }}">
+        <span class="badge-ic" style="--c: {{ info[2] if n.tipo == 'reaccion' else ('#1E1E1E' if n.tipo == 'solicitud' else '#2F6FB5') }}">
+          {{ c.av(n.quien, 'md', enlace=False) }}
+          <i class="bi {{ info[1] if n.tipo == 'reaccion' else ('bi-person-plus-fill' if n.tipo == 'solicitud' else 'bi-chat-fill') }}"></i></span>
+        <div class="flex-grow-1">
+          {% if n.tipo == 'reaccion' %}<b>{{ n.quien.nombre }}</b> reaccionó con «{{ info[0] }}» a tu publicación: <span class="muted">{{ n.texto }}</span>
+          {% elif n.tipo == 'comentario' %}<b>{{ n.quien.nombre }}</b> comentó: <span class="muted">«{{ n.texto }}»</span>
+          {% else %}<b>{{ n.quien.nombre }}</b> quiere conectar contigo. <span class="muted">{{ n.texto }}</span>{% endif %}
+        </div>
+        <span class="small muted text-nowrap">{{ n.fecha | hace }}</span>
+      </a>
+    {% else %}<p class="muted px-3 pb-3" style="padding-left:18px">No tienes notificaciones todavía.</p>{% endfor %}
+  </section>
+  <aside class="lateral-fijo"><div class="caja caja-p small muted">
+    Las notificaciones no se guardan aparte: se calculan con una sola consulta (<code>UNION ALL</code>) sobre las reacciones,
+    comentarios e invitaciones que apuntan a ti en el grafo.</div></aside>
+</div>
+{% endblock %}

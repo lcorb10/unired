@@ -1,0 +1,1 @@
+Para consultarla se usa Sáifer, un lenguaje que dibuja el patrón que buscas: los nodos van entre paréntesis y las relaciones entre corchetes, con una flecha que indica la dirección.

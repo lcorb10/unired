@@ -1,0 +1,73 @@
+{% extends "admin/base.html" %}
+{% import "admin/_macros.html" as m with context %}
+{% block title %}Consultas{% endblock %}
+{% block content %}
+<h1 class="h3 mb-4">Consultas sobre el grafo</h1>
+<div class="row g-4">
+  <div class="col-lg-3">
+    <div class="list-group">
+      {% for k, txt in preguntas.items() %}
+      <a class="list-group-item list-group-item-action {% if k == q %}active{% endif %}"
+         href="{{ url_for('admin.consultas', q=k) }}">{{ txt }}</a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="col-lg-9"><div class="card p-3">
+    <h2 class="h5 mb-3">{{ preguntas[q] }}</h2>
+    <form method="get" class="row g-2 align-items-end mb-3">
+      <input type="hidden" name="q" value="{{ q }}">
+      {% if q == '1' %}
+        <div class="col-md-5">{{ m.select('u', usuarios, u, 'Usuario base', auto=True) }}</div>
+        <div class="col-12 form-text">Similitud = índice de Jaccard: habilidades compartidas / habilidades de ambos.</div>
+      {% elif q == '2' %}
+        <div class="col-md-4">{{ m.select('a', usuarios, a, 'Profesional A') }}</div>
+        <div class="col-md-4">{{ m.select('b', usuarios, b, 'Profesional B') }}</div>
+        <div class="col-md-2"><button class="btn btn-primary w-100">Consultar</button></div>
+      {% elif q == '3' %}
+        <div class="col-md-4">{{ m.select('u', usuarios, u, 'Usuario') }}</div>
+        <div class="col-md-4">{{ m.select('e', empresas, e, 'Empresa') }}</div>
+        <div class="col-md-2"><button class="btn btn-primary w-100">Buscar ruta</button></div>
+        <div class="col-12 form-check ms-1">
+          <input class="form-check-input" type="checkbox" name="solo" value="1" id="solo" {% if solo %}checked{% endif %}>
+          <label class="form-check-label" for="solo">Solo contactos y empleos (ignorar proyectos, ofertas y habilidades)</label>
+        </div>
+      {% elif q == '4' %}
+        <div class="col-md-6">{{ m.select('o', abiertas, o, 'Oferta', auto=True) }}</div>
+        <div class="col-12 form-text">Puntaje = 70 % cobertura de habilidades + 30 % conexiones con empleados de la empresa.</div>
+      {% endif %}
+    </form>
+
+    {% if q == '3' %}
+      {% if ruta %}
+        <div class="alert alert-success">Ruta de <b>{{ ruta.saltos }}</b> saltos:
+          {% for n in ruta.nodos %}{{ n.nombre }}{% if not loop.last %} <span class="text-muted">—[{{ ruta.relaciones[loop.index0] }}]→</span> {% endif %}{% endfor %}
+        </div>
+        <div id="g" class="grafo bajo"></div>
+        {{ m.leyenda() }}
+      {% else %}
+        <div class="alert alert-light border">No existe camino (máx. 8 saltos).</div>
+      {% endif %}
+    {% else %}
+      {{ m.tabla(filas) }}
+    {% endif %}
+
+    {% if q == '6' and filas %}
+      <canvas id="chart" height="110"></canvas>
+    {% endif %}
+  </div></div>
+</div>
+{% endblock %}
+{% block scripts %}
+{% if q == '3' and grafo %}<script>dibujarGrafo('g', {{ grafo | tojson }});</script>{% endif %}
+{% if q == '6' and filas %}
+<script>
+  const d = {{ filas[:10] | tojson }};
+  new Chart(document.getElementById('chart'), {type: 'bar',
+    data: {labels: d.map(x => x.habilidad), datasets: [
+      {label: 'Ofertas que la requieren', data: d.map(x => x.demanda), backgroundColor: '#E45756'},
+      {label: 'Profesionales que la tienen', data: d.map(x => x.profesionales), backgroundColor: '#54A24B'}]},
+    options: {scales: {y: {beginAtZero: true, ticks: {precision: 0}}}}});
+</script>
+{% endif %}
+{% endblock %}

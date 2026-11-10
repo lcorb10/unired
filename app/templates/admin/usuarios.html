@@ -1,0 +1,45 @@
+{% extends "admin/base.html" %}
+{% block title %}Usuarios{% endblock %}
+{% block content %}
+<h1 class="h3 mb-4">Usuarios</h1>
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card p-3">
+      <h2 class="h6">Listado</h2>
+      <div class="table-responsive">
+      <table class="table table-sm table-hover align-middle">
+        <thead class="table-light"><tr>
+          <th>Nombre</th><th>Correo</th><th>Titular</th><th>Ciudad</th><th>Años</th><th>Empresa</th><th></th>
+        </tr></thead>
+        <tbody>
+        {% for u in filas %}
+        <tr>
+          <td><a href="{{ url_for('admin.usuario_perfil', uid=u.id) }}">{{ u.nombre }}</a></td>
+          <td>{{ u.email }}</td><td>{{ u.titular }}</td><td>{{ u.ciudad }}</td>
+          <td>{{ u.anios }}</td><td>{{ u.empresa or '—' }}</td>
+          <td class="text-nowrap">
+            <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.usuario_editar', uid=u.id) }}">Editar</a>
+            <form class="d-inline" method="post" action="{{ url_for('admin.usuario_eliminar', uid=u.id) }}"
+                  onsubmit='return confirm({{ ("¿Eliminar a " ~ u.nombre ~ " y todas sus relaciones?") | tojson }})'>
+              <button class="btn btn-sm btn-outline-danger">Eliminar</button></form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-muted">No hay usuarios todavía.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card p-3">
+      <h2 class="h6">Crear usuario</h2>
+      <form method="post" action="{{ url_for('admin.usuario_crear') }}">
+        {% include "admin/_form_usuario.html" %}
+        <button class="btn btn-primary w-100">Crear</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

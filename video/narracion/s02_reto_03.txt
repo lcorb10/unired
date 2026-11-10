@@ -1,0 +1,1 @@
+Y como componente de investigación, explicar en qué casos el modelo de grafos supera al relacional y en cuáles no.

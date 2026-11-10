@@ -1,0 +1,1 @@
+Igual que en Workbench cuando abrimos una tabla, en el panel de la izquierda podemos hacer clic en cualquier etiqueta o tipo de relación para consultarla.

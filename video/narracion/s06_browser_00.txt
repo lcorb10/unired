@@ -1,0 +1,1 @@
+Para ver la base de datos usamos Neo for yei Browser, que cumple el papel que tiene Workbench en Myese cu ele.

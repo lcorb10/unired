@@ -1,0 +1,109 @@
+{% extends "red/base.html" %}
+{% import "_comun.html" as c with context %}
+{% from "red/_post.html" import post with context %}
+{% block title %}Inicio{% endblock %}
+{% block content %}
+<div class="feed-grid">
+  <aside class="izq lateral-fijo">
+    <div class="caja tarjeta-yo">
+      <div class="portada">{% if yo.u.portada %}<img src="{{ url_for('media', nombre=yo.u.portada) }}" alt="">{% endif %}</div>
+      {{ c.av(yo.u, 'lg') }}
+      <div class="datos">
+        <a class="nombre" href="{{ url_for('red.perfil', uid=yo.u.id) }}">{{ yo.u.nombre }}</a>
+        <div class="titular">{{ yo.u.titular or 'Agrega un titular a tu perfil' }}</div>
+        {% if yo.u.ciudad %}<div class="small muted mt-1">{{ yo.u.ciudad }}</div>{% endif %}
+        {% if yo.institucion %}<div class="inst"><i class="bi bi-mortarboard-fill"></i>{{ yo.institucion }}</div>{% endif %}
+      </div>
+      <div class="separa"></div>
+      <a class="fila-dato" href="{{ url_for('red.mi_red') }}"><span>Contactos<br><span class="small-2">Amplía tu red</span></span><b>{{ yo.contactos }}</b></a>
+      {% if yo.solicitudes %}<a class="fila-dato" href="{{ url_for('red.mi_red') }}"><span>Invitaciones pendientes</span><b>{{ yo.solicitudes }}</b></a>{% endif %}
+    </div>
+    <div class="caja menu-lateral py-2">
+      <a href="{{ url_for('red.perfil_editar') }}#estudio"><i class="bi bi-mortarboard"></i>Mis estudios</a>
+      <a href="{{ url_for('red.empleos') }}#postulaciones"><i class="bi bi-send-check"></i>Mis postulaciones</a>
+      <a href="{{ url_for('red.mensajes') }}"><i class="bi bi-chat-dots"></i>Mensajes</a>
+    </div>
+  </aside>
+
+  <section aria-label="Publicaciones">
+    <div class="caja crear">
+      <div class="fila">{{ c.av(yo.u, 'md', enlace=False) }}
+        <button class="abrir" type="button" data-bs-toggle="modal" data-bs-target="#modal-publicar">Crear publicación</button></div>
+      <div class="acciones">
+        <button type="button" data-bs-toggle="modal" data-bs-target="#modal-publicar" data-abrir-archivo="video/*"><i class="bi bi-play-btn-fill i-video"></i>Video</button>
+        <button type="button" data-bs-toggle="modal" data-bs-target="#modal-publicar" data-abrir-archivo="image/*"><i class="bi bi-image i-foto"></i>Foto</button>
+        <a class="btn btn-plano d-inline-flex align-items-center gap-2" href="{{ url_for('red.perfil_editar') }}#estudio"><i class="bi bi-mortarboard-fill i-estudio"></i>Estudios</a>
+      </div>
+    </div>
+    <div class="orden"><hr><span>Ver:</span>
+      <a href="{{ url_for('red.inicio') }}" class="{{ 'off' if solo_red }}">Todo</a>
+      <a href="{{ url_for('red.inicio', ver='red') }}" class="{{ 'off' if not solo_red }}">Mi red</a></div>
+    {% for p in posts %}{{ post(p) }}
+    {% else %}
+    <div class="caja caja-p text-center py-5">
+      <h2>Tu feed está vacío</h2>
+      <p class="muted">Conecta con personas o publica algo para empezar.</p>
+      <a class="btn btn-rojo" href="{{ url_for('red.mi_red') }}">Buscar contactos</a>
+    </div>
+    {% endfor %}
+  </section>
+
+  <aside class="der lateral-fijo">
+    <div class="caja caja-p">
+      <h2>Personas que quizá conozcas</h2>
+      {% for s in sugeridos %}
+      <div class="persona">{{ c.av(s.u) }}
+        <div class="info"><a href="{{ url_for('red.perfil', uid=s.u.id) }}">{{ s.u.nombre }}</a>
+          <div class="t">{{ s.u.titular }}</div>
+          <div class="motivo">{% if s.comunes %}{{ s.comunes }} contacto{{ 's' if s.comunes != 1 }} en común{% elif s.instituciones %}También estudió en {{ s.instituciones[0] }}{% else %}{{ s.habilidades }} habilidad{{ 'es' if s.habilidades != 1 }} en común{% endif %}</div>
+          <form method="post" action="{{ url_for('red.red_accion', uid=s.u.id, accion='conectar') }}" class="mt-2">{{ c.csrf() }}
+            <button class="btn btn-sm btn-borde"><i class="bi bi-person-plus-fill"></i> Conectar</button></form>
+        </div>
+      </div>
+      {% else %}<p class="muted small mb-0">Completa tus estudios y habilidades para recibir sugerencias.</p>{% endfor %}
+      <a class="small fw-bold d-block mt-1" href="{{ url_for('red.mi_red') }}">Ver todas las sugerencias</a>
+    </div>
+    <div class="caja caja-p">
+      <h2>Habilidades más pedidas</h2>
+      {% set maximo = (demanda | map(attribute='ofertas') | max) if demanda else 1 %}
+      <div class="barra-demanda">
+        {% for h in demanda %}<span>{{ h.nombre }}</span><span class="muted small">{{ h.ofertas }} oferta{{ 's' if h.ofertas != 1 }}</span>
+        <div class="b"><span style="width: {{ (100 * h.ofertas / maximo) | round }}%"></span></div>{% endfor %}
+      </div>
+      <a class="small fw-bold" href="{{ url_for('red.empleos') }}">Ver empleos</a>
+    </div>
+    <div class="pie">UniRed · Proyecto de Bases de Datos, Universidad del Norte · Grafo en Neo4j</div>
+  </aside>
+</div>
+
+<div class="modal fade" id="modal-publicar" tabindex="-1" aria-labelledby="titulo-publicar" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content" style="border-radius: 14px">
+    <form method="post" action="{{ url_for('red.publicar') }}" enctype="multipart/form-data">{{ c.csrf() }}
+      <div class="modal-header border-0 pb-0">
+        <div class="d-flex gap-2 align-items-center">{{ c.av(yo.u, 'md', enlace=False) }}
+          <div><h2 class="h5 m-0" id="titulo-publicar">{{ yo.u.nombre }}</h2><div class="small muted">Publicar para todos</div></div></div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <textarea name="texto" class="form-control border-0 fs-5" rows="5" maxlength="3000" placeholder="¿Sobre qué quieres hablar?" aria-label="Texto de la publicación"></textarea>
+        <div class="vista-previa" id="vista-previa" hidden></div>
+        <input type="file" name="archivo" id="archivo-post" accept="image/*,video/*" hidden>
+      </div>
+      <div class="modal-footer justify-content-between">
+        <div class="d-flex gap-1">
+          <button type="button" class="btn btn-plano" data-adjuntar="image/*"><i class="bi bi-image" style="color:#2F6FB5"></i> Foto</button>
+          <button type="button" class="btn btn-plano" data-adjuntar="video/*"><i class="bi bi-play-btn-fill" style="color:#2E8B57"></i> Video</button>
+        </div>
+        <button class="btn btn-rojo px-4">Publicar</button>
+      </div>
+    </form>
+  </div></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  // «Video» y «Foto» de la tarjeta abren el modal y luego el selector de archivo.
+  document.querySelectorAll('[data-abrir-archivo]').forEach(b => b.addEventListener('click', () =>
+    setTimeout(() => { const a = document.getElementById('archivo-post'); a.accept = b.dataset.abrirArchivo; a.click(); }, 350)));
+</script>
+{% endblock %}

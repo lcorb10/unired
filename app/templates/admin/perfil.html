@@ -1,0 +1,38 @@
+{% extends "admin/base.html" %}
+{% import "admin/_macros.html" as m with context %}
+{% block title %}{{ p.usuario.nombre }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-4">
+  <div>
+    <h1 class="h3 mb-1">{{ p.usuario.nombre }}</h1>
+    <div class="text-muted">{{ p.usuario.titular }} · {{ p.usuario.ciudad }} · {{ p.usuario.anios_experiencia }} años · {{ p.usuario.email }}</div>
+  </div>
+  <div>
+    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('admin.usuario_editar', uid=uid) }}">Editar</a>
+    <a class="btn btn-outline-primary btn-sm" href="{{ url_for('admin.recomendaciones', u=uid) }}">Ver recomendaciones</a>
+  </div>
+</div>
+<div class="row g-3">
+  <div class="col-md-6"><div class="card p-3 h-100">
+    <h2 class="h6">Empresa</h2>
+    <p class="mb-0">{% if p.empresa %}{{ p.empresa }} ({{ p.cargo }}){% else %}<span class="text-muted">Sin empresa</span>{% endif %}</p>
+  </div></div>
+  <div class="col-md-6"><div class="card p-3 h-100">
+    <h2 class="h6">Habilidades</h2>
+    {% for h in p.habilidades %}<span class="badge text-bg-success me-1 mb-1">{{ h.habilidad }} · {{ h.nivel }}/5</span>
+    {% else %}<span class="text-muted">Ninguna</span>{% endfor %}
+  </div></div>
+  <div class="col-md-6"><div class="card p-3 h-100">
+    <h2 class="h6">Proyectos</h2>
+    {{ p.proyectos | join(', ') or '—' }}
+  </div></div>
+  <div class="col-md-6"><div class="card p-3 h-100">
+    <h2 class="h6">Contactos ({{ p.contactos | length }})</h2>
+    {{ p.contactos | join(', ') or '—' }}
+  </div></div>
+  <div class="col-12"><div class="card p-3">
+    <h2 class="h6">Postulaciones</h2>
+    {{ m.tabla(postulaciones, 'No se ha postulado a ninguna oferta.') }}
+  </div></div>
+</div>
+{% endblock %}

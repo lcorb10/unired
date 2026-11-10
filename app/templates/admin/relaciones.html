@@ -1,0 +1,61 @@
+{% extends "admin/base.html" %}
+{% import "admin/_macros.html" as m with context %}
+{% block title %}Relaciones{% endblock %}
+{% block content %}
+<h1 class="h3 mb-4">Crear relaciones</h1>
+<div class="row g-4">
+  <div class="col-md-6"><div class="card p-3 h-100">
+    <h2 class="h6">Conectar usuarios <code>CONECTA_CON</code></h2>
+    <form method="post" action="{{ url_for('admin.rel_conectar') }}">
+      <div class="mb-2">{{ m.select('a', usuarios, None, 'Usuario A') }}</div>
+      <div class="mb-3">{{ m.select('b', usuarios, usuarios[1].id if usuarios|length > 1 else None, 'Usuario B') }}</div>
+      <button class="btn btn-primary">Conectar</button>
+    </form>
+  </div></div>
+
+  <div class="col-md-6"><div class="card p-3 h-100">
+    <h2 class="h6">Asignar habilidad <code>TIENE_HABILIDAD</code></h2>
+    <form method="post" action="{{ url_for('admin.rel_habilidad') }}">
+      <div class="mb-2">{{ m.select('u', usuarios, None, 'Usuario') }}</div>
+      <div class="mb-2">{{ m.select('h', habilidades, None, 'Habilidad') }}</div>
+      <div class="mb-3"><label class="form-label">Nivel: <b id="nv">3</b>/5</label>
+        <input type="range" class="form-range" name="nivel" min="1" max="5" value="3"
+               oninput="document.getElementById('nv').textContent = this.value"></div>
+      <button class="btn btn-primary">Asignar habilidad</button>
+    </form>
+    <hr>
+    <form class="d-flex gap-2" method="post" action="{{ url_for('admin.habilidad_crear') }}">
+      <input name="nombre" class="form-control" placeholder="…o crea una habilidad nueva">
+      <button class="btn btn-outline-primary text-nowrap">Crear</button>
+    </form>
+  </div></div>
+
+  <div class="col-md-6"><div class="card p-3 h-100">
+    <h2 class="h6">Vincular a empresa <code>TRABAJA_EN</code></h2>
+    <form method="post" action="{{ url_for('admin.rel_empresa') }}">
+      <div class="mb-2">{{ m.select('u', usuarios, None, 'Usuario') }}</div>
+      <div class="mb-2">{{ m.select('e', empresas, None, 'Empresa') }}</div>
+      <div class="mb-3"><label class="form-label">Cargo</label><input name="cargo" class="form-control"></div>
+      <button class="btn btn-primary">Vincular</button>
+      <div class="form-text">Si ya trabajaba en otra empresa, se reemplaza el vínculo anterior.</div>
+    </form>
+  </div></div>
+
+  <div class="col-md-6"><div class="card p-3 h-100">
+    <h2 class="h6">Unir a proyecto <code>PARTICIPA_EN</code></h2>
+    <form method="post" action="{{ url_for('admin.rel_proyecto') }}">
+      <div class="mb-2">{{ m.select('u', usuarios, None, 'Usuario') }}</div>
+      <div class="mb-3">{{ m.select('p', proyectos, None, 'Proyecto') }}</div>
+      <button class="btn btn-primary">Unir</button>
+    </form>
+    <hr>
+    <h3 class="h6">Crear proyecto nuevo <code>USA_TECNOLOGIA</code></h3>
+    <form method="post" action="{{ url_for('admin.proyecto_crear') }}">
+      <input name="nombre" class="form-control mb-2" placeholder="Nombre del proyecto" required>
+      <input name="descripcion" class="form-control mb-2" placeholder="Descripción">
+      <div class="mb-2">{{ m.select('tecnologias', habilidades, None, 'Tecnologías (Ctrl/Cmd + clic para varias)', multiple=True) }}</div>
+      <button class="btn btn-outline-primary">Crear proyecto</button>
+    </form>
+  </div></div>
+</div>
+{% endblock %}

@@ -1,0 +1,1 @@
+Del enunciado tomamos las cinco entidades: Usuario, Empresa, Habilidad, Proyecto y Oferta, con sus relaciones: conecta con, trabaja en, tiene habilidad, participa en, publica, requiere y postula a.

@@ -1,0 +1,1 @@
+Con de be punto esquema punto visualización vemos el modelo real guardado en la base: las etiquetas y los tipos de relación que existen.

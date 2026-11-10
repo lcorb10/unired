@@ -1,0 +1,1 @@
+Una base de datos de grafos guarda la información como nodos y relaciones.

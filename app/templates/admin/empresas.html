@@ -1,0 +1,18 @@
+{% extends "admin/base.html" %}
+{% import "admin/_macros.html" as m with context %}
+{% block title %}Empresas{% endblock %}
+{% block content %}
+<h1 class="h3 mb-4">Empresas</h1>
+<div class="row g-4">
+  <div class="col-lg-8"><div class="card p-3">{{ m.tabla(filas) }}</div></div>
+  <div class="col-lg-4"><div class="card p-3">
+    <h2 class="h6">Registrar empresa</h2>
+    <form method="post" action="{{ url_for('admin.empresa_crear') }}">
+      <input name="nombre" class="form-control mb-2" placeholder="Nombre" required>
+      <input name="sector" class="form-control mb-2" placeholder="Sector">
+      <input name="ciudad" class="form-control mb-3" placeholder="Ciudad">
+      <button class="btn btn-primary w-100">Registrar</button>
+    </form>
+  </div></div>
+</div>
+{% endblock %}

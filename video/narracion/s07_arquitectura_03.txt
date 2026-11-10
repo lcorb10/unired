@@ -1,0 +1,1 @@
+Para publicarla, la servimos desde nuestro propio computador con waitress, y un túnel de Cloudflare nos da un enlace seguro que se abre desde cualquier celular.

@@ -1,0 +1,11 @@
+{% set u = u or {} %}
+<div class="mb-2"><label class="form-label">Nombre *</label>
+  <input name="nombre" class="form-control" required value="{{ u.nombre or '' }}"></div>
+<div class="mb-2"><label class="form-label">Correo *</label>
+  <input name="email" type="email" class="form-control" required value="{{ u.email or '' }}"></div>
+<div class="mb-2"><label class="form-label">Titular profesional</label>
+  <input name="titular" class="form-control" value="{{ u.titular or '' }}"></div>
+<div class="mb-2"><label class="form-label">Ciudad</label>
+  <input name="ciudad" class="form-control" value="{{ u.ciudad or '' }}"></div>
+<div class="mb-3"><label class="form-label">Años de experiencia</label>
+  <input name="anios" type="number" min="0" max="50" class="form-control" value="{{ u.anios_experiencia or 0 }}"></div>

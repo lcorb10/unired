@@ -1,0 +1,1 @@
+La aplicación debía permitir el CRUD de usuarios, conectarlos entre sí, vincularlos con habilidades, empresas y proyectos, publicar ofertas y postularse a ellas.

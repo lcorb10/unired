@@ -1,0 +1,9 @@
+{% extends "red/base.html" %}
+{% from "red/_post.html" import post with context %}
+{% block title %}Publicación de {{ p.autor.nombre }}{% endblock %}
+{% block content %}
+<div style="max-width: 620px; margin: 0 auto">
+  <a class="small fw-bold d-inline-block mb-2" href="{{ url_for('red.inicio') }}"><i class="bi bi-arrow-left"></i> Volver al inicio</a>
+  {{ post(p) }}
+</div>
+{% endblock %}

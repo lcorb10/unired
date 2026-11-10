@@ -1,0 +1,25 @@
+{% extends "admin/base.html" %}
+{% import "admin/_macros.html" as m with context %}
+{% block title %}Recomendaciones{% endblock %}
+{% block content %}
+<h1 class="h3 mb-4">Recomendaciones para un usuario</h1>
+<form method="get" class="row mb-4"><div class="col-md-4">
+  {{ m.select('u', usuarios, uid, 'Usuario', auto=True) }}</div></form>
+<div class="row g-4">
+  <div class="col-xl-4"><div class="card p-3 h-100">
+    <h2 class="h6">Contactos sugeridos</h2>
+    <p class="form-text mt-0">Amigos de amigos con los que aún no está conectado.</p>
+    {{ m.tabla(contactos) }}
+  </div></div>
+  <div class="col-xl-4"><div class="card p-3 h-100">
+    <h2 class="h6">Empleos sugeridos</h2>
+    <p class="form-text mt-0">Ofertas abiertas que piden habilidades que ya tiene.</p>
+    {{ m.tabla(empleos) }}
+  </div></div>
+  <div class="col-xl-4"><div class="card p-3 h-100">
+    <h2 class="h6">Colaboradores sugeridos</h2>
+    <p class="form-text mt-0">Personas en proyectos que usan las mismas tecnologías que los suyos.</p>
+    {{ m.tabla(colaboradores) }}
+  </div></div>
+</div>
+{% endblock %}

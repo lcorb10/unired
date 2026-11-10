@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Escena</title>
+<style>
+@font-face { font-family: B; src: url("../../app/static/vendor/fonts/bricolage.woff2") format("woff2"); font-weight: 200 800; }
+@font-face { font-family: F; src: url("../../app/static/vendor/fonts/figtree.woff2") format("woff2"); font-weight: 300 900; }
+:root { --rojo: #C8102E; --amarillo: #FFC72C; --gris: #9A9A9A; --linea: #3A3A3A; }
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 1440px; height: 810px; overflow: hidden; background: #000; color: #fff; font-family: F, sans-serif; }
+.cap { position: absolute; left: 64px; top: 44px; font-size: 17px; color: var(--gris); display: flex; gap: 10px; align-items: center; }
+.cap svg { width: 26px; height: 26px; }
+h1 { font-family: B; font-weight: 700; letter-spacing: -.03em; margin: 0; }
+.titulo { position: absolute; left: 64px; top: 88px; font-size: 54px; max-width: 1200px; line-height: 1.05; }
+.paso { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .7s cubic-bezier(.2,.8,.2,1); }
+.paso.on { opacity: 1; transform: none; }
+.tenue { opacity: .28 !important; }
+.chip { display: inline-flex; align-items: center; gap: 10px; padding: 10px 22px; border-radius: 999px; border: 2px solid #444; font-size: 24px; font-weight: 600; }
+.chip.r { border-color: var(--rojo); } .chip.a { border-color: var(--amarillo); color: var(--amarillo); }
+.mono { font-family: Consolas, "Cascadia Mono", monospace; }
+.codigo { background: #121212; border: 1px solid #2c2c2c; border-radius: 14px; padding: 22px 26px; font-family: Consolas, monospace; font-size: 22px; line-height: 1.5; white-space: pre; }
+.kw { color: #FF6B81; font-weight: 700; } .lb { color: var(--amarillo); } .rl { color: #7FD1FF; } .st { color: #F5B97A; } .co { color: #777; }
+.lista { list-style: none; margin: 0; padding: 0; font-size: 27px; line-height: 1.35; }
+.lista li { display: flex; gap: 14px; align-items: flex-start; margin: 14px 0; }
+.lista li b { color: var(--amarillo); }
+.lista .v { color: var(--rojo); font-weight: 900; }
+.tarjeta { background: #111; border: 1px solid #2c2c2c; border-radius: 18px; padding: 24px 26px; }
+.tarjeta h3 { font-family: B; font-size: 30px; margin: 0 0 8px; }
+.tarjeta p { margin: 0; color: #CFCFCF; font-size: 21px; line-height: 1.4; }
+svg text { font-family: F, sans-serif; }
+.dibujo path, .dibujo line { stroke-dasharray: var(--l, 1400); stroke-dashoffset: var(--l, 1400); transition: stroke-dashoffset 1.1s ease; }
+.dibujo.on path, .dibujo.on line, .dibujo .on { stroke-dashoffset: 0; }
+</style></head>
+<body>
+<div id="raiz"></div>
+<script>
+const qs = new URLSearchParams(location.search);
+const ID = qs.get("id"), T = (qs.get("t") || "0").split(",").map(Number);
+const LOGO = '<svg viewBox="0 0 36 36"><rect width="36" height="36" rx="9" fill="#C8102E"/><path d="M11 10v9.5a7 7 0 0 0 14 0V10" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/><circle cx="11" cy="10" r="3.4" fill="#fff"/><circle cx="25" cy="10" r="3.4" fill="#FFC72C"/><circle cx="18" cy="26.5" r="2.6" fill="#fff"/></svg>';
+const raiz = document.getElementById("raiz");
+const h = (html) => { raiz.insertAdjacentHTML("beforeend", html); };
+const cap = (t) => h(`<div class="cap">${LOGO}<span>UniRed · ${t}</span></div>`);
+// paso k se activa cuando empieza la línea k de la narración
+const pasos = [];
+function en(k, fn) { pasos.push([k, fn]); }
+function mostrar(sel) { document.querySelectorAll(sel).forEach((e, i) => setTimeout(() => e.classList.add("on"), i * 140)); }
+const cy = s => s.replace(/(MATCH|RETURN|WHERE|JOIN|SELECT|DISTINCT|FROM|ON|CREATE|MERGE|SET|UNWIND|AS|CONSTRAINT|IF NOT EXISTS|FOR|REQUIRE|IS UNIQUE|ORDER BY|LIMIT)\b/g, '<span class="kw">$1</span>')
+  .replace(/:(Usuario|Empresa|Habilidad|Oferta|Proyecto|Institucion)/g, ':<span class="lb">$1</span>')
+  .replace(/:(CONECTA_CON|TRABAJA_EN|TIENE_HABILIDAD)/g, ':<span class="rl">$1</span>')
+  .replace(/('[^']*')/g, '<span class="st">$1</span>');
+
+const E = {};
+// ---------------------------------------------------------------- s01
+E.s01_intro = () => {
+  h(`<div style="position:absolute;inset:0;display:grid;place-items:center;text-align:center">
+     <div><div class="paso" id="a" style="display:flex;gap:30px;align-items:center;justify-content:center">
+        <div style="width:150px;height:150px">${LOGO}</div><h1 style="font-size:150px">Uni<span style="color:var(--amarillo)">Red</span></h1></div>
+      <div class="paso" id="b" style="font-size:36px;margin-top:18px">Red profesional sobre <b>Neo4j</b>, una base de datos de grafos</div>
+      <div class="paso" id="c" style="font-size:24px;color:var(--gris);margin-top:14px">Proyecto I+D · Bases de Datos · Universidad del Norte</div>
+      <div style="display:flex;gap:16px;justify-content:center;margin-top:46px">
+        ${["Bases de grafos", "Modelo", "Scripts y Cypher", "Demo", "Grafo vs. relacional"].map((t, i) => `<span class="chip paso ch ${i % 2 ? "a" : "r"}">${t}</span>`).join("")}</div></div></div>`);
+  en(0, () => { mostrar("#a"); setTimeout(() => mostrar("#b"), 900); });
+  en(1, () => mostrar("#c"));
+  en(2, () => mostrar(".ch"));
+};
+// ---------------------------------------------------------------- s02
+E.s02_reto = () => {
+  cap("El enunciado"); h(`<h1 class="titulo paso" id="t">Una red profesional donde las relaciones importan tanto como los datos</h1>`);
+  const ent = [["Usuario", "#C8102E"], ["Empresa", "#444"], ["Habilidad", "#B07D00"], ["Proyecto", "#7A1A2C"], ["Oferta", "#E4572E"]];
+  h(`<div style="position:absolute;left:64px;right:64px;top:250px;display:flex;justify-content:space-between">${ent.map(([n, c]) =>
+    `<div class="paso en" style="text-align:center"><div style="width:120px;height:120px;border-radius:50%;background:${c};margin:auto;display:grid;place-items:center;font-weight:800;font-size:20px">${n}</div></div>`).join("")}</div>`);
+  h(`<div style="position:absolute;left:64px;top:420px;display:grid;grid-template-columns:repeat(5,1fr);gap:14px;right:64px">${["CRUD de usuarios", "Conectar usuarios", "Habilidades, empresas, proyectos", "Publicar ofertas", "Postularse"].map(t =>
+    `<div class="paso req tarjeta" style="padding:18px"><p style="font-size:20px;color:#fff"><span style="color:var(--rojo);font-weight:900">✓</span> ${t}</p></div>`).join("")}</div>`);
+  h(`<div style="position:absolute;left:64px;right:64px;top:540px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px">${[["Caminos", "Rutas entre usuarios y empresas"], ["Recomendaciones", "Contactos, empleos y colaboradores"], ["Analítica", "Influyentes, comunidades, habilidades"]].map(([a, b]) =>
+    `<div class="paso tres tarjeta" style="border-color:var(--amarillo)"><h3 style="color:var(--amarillo)">${a}</h3><p>${b}</p></div>`).join("")}</div>`);
+  h(`<div class="paso" id="q" style="position:absolute;right:64px;top:38px;background:var(--rojo);border-radius:999px;padding:10px 24px;font-weight:800;font-size:22px">Investigación: ¿grafo o relacional?</div>`);
+  en(0, () => { mostrar("#t"); setTimeout(() => mostrar(".en"), 600); });
+  en(1, () => mostrar(".req"));
+  en(2, () => mostrar(".tres"));
+  en(3, () => mostrar("#q"));
+};
+// ---------------------------------------------------------------- s03
+E.s03_grafos = () => {
+  cap("Bases de datos de grafos");
+  h(`<h1 class="titulo paso" id="t">Nodos, relaciones y propiedades</h1>
+  <svg width="1440" height="810" style="position:absolute;inset:0">
+    <defs><marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0L10,5L0,10z" fill="#fff"/></marker>
+          <marker id="my" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0L10,5L0,10z" fill="#FFC72C"/></marker></defs>
+    <g class="paso" id="n1"><circle cx="330" cy="380" r="82" fill="#C8102E"/><text x="330" y="388" fill="#fff" font-size="26" font-weight="800" text-anchor="middle">Ana</text></g>
+    <g class="paso" id="n2"><circle cx="830" cy="380" r="82" fill="#C8102E"/><text x="830" y="388" fill="#fff" font-size="26" font-weight="800" text-anchor="middle">Luis</text></g>
+    <g class="dibujo" id="r1"><line x1="418" y1="380" x2="738" y2="380" stroke="#fff" stroke-width="4" marker-end="url(#m)" style="--l:330"/></g>
+    <text class="paso" id="rt" x="578" y="362" fill="#7FD1FF" font-size="24" font-weight="800" text-anchor="middle">:CONECTA_CON</text>
+    <g class="paso" id="p1"><rect x="200" y="490" width="260" height="104" rx="14" fill="#111" stroke="#FFC72C"/>
+      <text x="220" y="528" fill="#FFC72C" font-size="22" font-weight="800">:Usuario</text>
+      <text x="220" y="566" fill="#ddd" font-size="20" class="mono">nombre: 'Ana Torres'</text></g>
+    <g class="paso" id="p2"><rect x="470" y="400" width="216" height="64" rx="12" fill="#111" stroke="#7FD1FF"/>
+      <text x="486" y="440" fill="#ddd" font-size="20" class="mono">desde: 2024-01-01</text></g>
+  </svg>
+  <div class="paso" id="ady" style="position:absolute;left:960px;top:230px;width:420px">
+    <svg width="420" height="320" id="mini"></svg>
+    <div style="font-size:24px;line-height:1.35">Adyacencia sin índices: <b style="color:var(--amarillo)">cada salto es un puntero</b>, sin importar el tamaño total del grafo.</div></div>
+  <div class="paso codigo" id="cy" style="position:absolute;left:64px;right:64px;top:640px;font-size:30px;text-align:center"></div>`);
+  // mini red para la adyacencia
+  const P = [[60, 160], [150, 60], [170, 230], [270, 130], [360, 60], [370, 240], [250, 290]];
+  const A = [[0, 1], [0, 2], [1, 3], [2, 3], [3, 4], [3, 5], [5, 6], [2, 6]];
+  const mini = document.getElementById("mini");
+  mini.innerHTML = A.map(([a, b], i) => `<line id="e${i}" x1="${P[a][0]}" y1="${P[a][1]}" x2="${P[b][0]}" y2="${P[b][1]}" stroke="#555" stroke-width="3"/>`).join("") +
+    P.map(([x, y], i) => `<circle id="v${i}" cx="${x}" cy="${y}" r="16" fill="#333"/>`).join("");
+  en(0, () => { mostrar("#t"); mostrar("#n1"); setTimeout(() => { mostrar("#n2"); document.getElementById("r1").classList.add("on"); }, 500); });
+  en(1, () => mostrar("#p1"));
+  en(2, () => { mostrar("#rt"); mostrar("#p2"); });
+  en(3, () => { document.querySelectorAll("#n1,#n2,#r1,#rt,#p1,#p2").forEach(e => e.classList.add("tenue")); mostrar("#ady");
+    const ruta = [[0, null], [2, 1], [3, 3], [5, 5], [6, 6]];
+    ruta.forEach(([v, e], i) => setTimeout(() => { document.getElementById("v" + v).setAttribute("fill", i ? "#C8102E" : "#FFC72C");
+      if (e !== null) { const l = document.getElementById("e" + e); l.setAttribute("stroke", "#FFC72C"); l.setAttribute("stroke-width", "6"); } }, 900 + i * 900)); });
+  en(4, () => { document.getElementById("cy").innerHTML = cy("MATCH (a:Usuario)-[:CONECTA_CON]->(b:Usuario) RETURN b.nombre"); mostrar("#cy"); });
+};
+// ---------------------------------------------------------------- s04
+E.s04_modelo = () => {
+  cap("El modelo");
+  h(`<svg id="s" width="1440" height="810" viewBox="0 30 1600 900" style="position:absolute;inset:0;transform-origin:0 50%;transition:transform 1s cubic-bezier(.65,0,.35,1)"><defs>
+    <marker id="f" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0L10,5L0,10z" fill="#bbb"/></marker>
+    <marker id="fr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0L10,5L0,10z" fill="#ff4d6a"/></marker>
+    <marker id="fy" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0L10,5L0,10z" fill="#FFC72C"/></marker></defs>
+    <g id="A"></g><g id="N"></g><g id="L"></g></svg>
+    <div class="paso" id="nota1" style="position:absolute;right:48px;top:250px;width:330px" ></div>`);
+  const N = { Usuario: [560, 480, 78, "#C8102E", 1], Empresa: [900, 230, 62, "#555", 1], Oferta: [1220, 230, 60, "#E4572E", 1], Habilidad: [1430, 520, 64, "#B07D00", 1],
+    Proyecto: [1130, 790, 62, "#7A1A2C", 1], Institucion: [600, 840, 64, "#2E7D4F", 2], Publicacion: [210, 230, 68, "#2F6FB5", 2], Comentario: [560, 120, 62, "#3E8E8A", 2], Mensaje: [230, 800, 58, "#6D5A4B", 2] };
+  const R = [["Usuario", "Empresa", "TRABAJA_EN", 1, 0], ["Empresa", "Oferta", "PUBLICA", 1, 0], ["Oferta", "Habilidad", "REQUIERE", 1, 0], ["Usuario", "Oferta", "POSTULA_A", 1, .1],
+    ["Usuario", "Habilidad", "TIENE_HABILIDAD", 1, .04], ["Usuario", "Proyecto", "PARTICIPA_EN", 1, .12], ["Proyecto", "Habilidad", "USA_TECNOLOGIA", 3, 0],
+    ["Usuario", "Institucion", "ESTUDIO_EN", 2, 0], ["Usuario", "Publicacion", "PUBLICO", 2, .16], ["Usuario", "Publicacion", "REACCIONO", 2, -.16], ["Usuario", "Comentario", "ESCRIBIO", 2, 0],
+    ["Comentario", "Publicacion", "SOBRE", 2, 0], ["Usuario", "Mensaje", "ENVIO", 2, .2], ["Mensaje", "Usuario", "PARA", 2, .2]];
+  const ns = "http://www.w3.org/2000/svg", el = (t, a, p) => { const e = document.createElementNS(ns, t); for (const k in a) e.setAttribute(k, a[k]); p.append(e); return e; };
+  const gA = document.getElementById("A"), gN = document.getElementById("N"), gL = document.getElementById("L");
+  const color = g => g === 2 ? "#ff4d6a" : g === 3 ? "#FFC72C" : "#bbb", marca = g => g === 2 ? "url(#fr)" : g === 3 ? "url(#fy)" : "url(#f)";
+  function arista(a, b, tipo, gr, c, id) {
+    const [x1, y1, r1] = N[a], [x2, y2, r2] = N[b], dx = x2 - x1, dy = y2 - y1, d = Math.hypot(dx, dy), ux = dx / d, uy = dy / d;
+    const mx = (x1 + x2) / 2 - uy * c * d, my = (y1 + y2) / 2 + ux * c * d, s = [x1 + ux * r1, y1 + uy * r1], t = [x2 - ux * (r2 + 4), y2 - uy * (r2 + 4)];
+    const p = el("path", { d: `M${s} Q${mx},${my} ${t}`, fill: "none", stroke: color(gr), "stroke-width": gr === 1 ? 2.6 : 3, "stroke-dasharray": gr === 2 ? "8 6" : "", "marker-end": marca(gr), class: "paso g" + gr, id }, gA);
+    const lx = .25 * s[0] + .5 * mx + .25 * t[0], ly = .25 * s[1] + .5 * my + .25 * t[1];
+    const tx = el("text", { x: lx, y: ly + 6, "text-anchor": "middle", "font-size": 17, "font-weight": 800, fill: gr === 1 ? "#eee" : color(gr), class: "paso g" + gr,
+      "paint-order": "stroke", stroke: "#000", "stroke-width": 6, id: id ? id + "t" : "" }, gL); tx.textContent = tipo;
+  }
+  R.forEach(([a, b, t, g, c]) => arista(a, b, t, g, c, t === "TIENE_HABILIDAD" ? "th" : t === "POSTULA_A" ? "pa" : ""));
+  const [ux, uy] = N.Usuario;
+  el("path", { d: `M${ux - 70},${uy - 34} C${ux - 250},${uy - 110} ${ux - 250},${uy + 110} ${ux - 74},${uy + 26}`, fill: "none", stroke: "#bbb", "stroke-width": 2.6, "marker-end": "url(#f)", class: "paso g1", id: "cc" }, gA);
+  const t1 = el("text", { x: ux - 215, y: uy + 6, "text-anchor": "middle", "font-size": 17, "font-weight": 800, fill: "#eee", class: "paso g1", "paint-order": "stroke", stroke: "#000", "stroke-width": 6 }, gL); t1.textContent = "CONECTA_CON";
+  el("path", { d: `M${ux + 70},${uy - 36} C${ux + 230},${uy - 90} ${ux + 230},${uy + 60} ${ux + 76},${uy + 22}`, fill: "none", stroke: "#ff4d6a", "stroke-width": 3, "stroke-dasharray": "8 6", "marker-end": "url(#fr)", class: "paso g2", id: "sc" }, gA);
+  const t2 = el("text", { x: ux + 250, y: uy - 30, "font-size": 17, "font-weight": 800, fill: "#ff4d6a", class: "paso g2", "paint-order": "stroke", stroke: "#000", "stroke-width": 6 }, gL); t2.textContent = "SOLICITA_CONEXION";
+  for (const k in N) { const [x, y, r, c, g] = N[k], gg = el("g", { class: "paso n" + g + (k === "Usuario" ? " nu" : "") }, gN);
+    el("circle", { cx: x, cy: y, r, fill: c, stroke: "#000", "stroke-width": 4 }, gg); const t = el("text", { x, y: y + 7, "text-anchor": "middle", "font-size": 19, "font-weight": 800, fill: "#fff" }, gg); t.textContent = k; }
+  const nota = (html) => { const n = document.getElementById("nota1"); n.classList.remove("on"); setTimeout(() => { n.innerHTML = html; n.classList.add("on"); }, 250); };
+  en(0, () => mostrar(".nu"));
+  en(1, () => { mostrar(".n1:not(.nu)"); setTimeout(() => mostrar(".g1"), 700); });
+  en(2, () => { mostrar(".g3"); document.querySelectorAll(".g1,.n1:not(.nu)").forEach(e => e.classList.add("tenue")); });
+  en(3, () => { document.querySelectorAll(".tenue").forEach(e => e.classList.remove("tenue")); mostrar(".n2"); setTimeout(() => mostrar(".g2"), 700); });
+  en(4, () => { document.getElementById("s").style.transform = "translateX(20px) scale(.74)"; document.querySelectorAll(".g2,.n2,.g3").forEach(e => e.classList.add("tenue"));
+    nota(`<div class="tarjeta"><h3>En la relación</h3><p class="mono" style="font-size:20px"><span class="rl">TIENE_HABILIDAD</span> {nivel: 4}<br><span class="rl">POSTULA_A</span> {estado: 'EN_REVISION'}</p></div>`); });
+  en(5, () => { document.querySelectorAll(".tenue").forEach(e => e.classList.remove("tenue"));
+    nota(`<div class="tarjeta" style="border-color:#ff4d6a"><h3>Invitación ≠ conexión</h3><p><span style="color:#ff4d6a;font-weight:800">SOLICITA_CONEXION</span> → al aceptar → <b>CONECTA_CON</b></p></div>`); });
+};
+// ---------------------------------------------------------------- s05
+E.s05_scripts = () => {
+  cap("Scripts de la base de datos"); h(`<h1 class="titulo paso" id="t">Cuatro scripts en Cypher</h1>`);
+  const F = [["01_schema", "Restricciones e índices", "CREATE CONSTRAINT usuario_id IF NOT EXISTS\n  FOR (u:Usuario) REQUIRE u.id IS UNIQUE;"],
+    ["02_seed", "Datos de ejemplo", "20 usuarios · 6 empresas · 16 habilidades\n8 proyectos · 10 ofertas"],
+    ["03_queries", "Todas las consultas", "CRUD · relaciones · 6 preguntas\nrecomendaciones · analítica"],
+    ["04_red_social", "Capa social", "UNWIND [...] AS r\nMERGE (u)-[:ESTUDIO_EN]->(i)"]];
+  h(`<div style="position:absolute;left:64px;right:64px;top:200px;display:grid;grid-template-columns:repeat(4,1fr);gap:18px">${F.map(([f, d], i) =>
+    `<div class="paso fic tarjeta" id="f${i}"><div class="mono" style="color:var(--amarillo);font-size:22px">${f}.cypher</div><h3 style="margin-top:8px">${d}</h3></div>`).join("")}</div>
+    <div class="paso codigo" id="cod" style="position:absolute;left:64px;right:64px;top:420px;min-height:150px"></div>`);
+  const ver = (i) => { document.querySelectorAll(".fic").forEach((e, j) => e.style.borderColor = j === i ? "#C8102E" : "#2c2c2c");
+    const c = document.getElementById("cod"); c.classList.remove("on"); setTimeout(() => { c.innerHTML = cy(F[i][2]); c.classList.add("on"); }, 250); };
+  en(0, () => { mostrar("#t"); setTimeout(() => mostrar(".fic"), 500); });
+  en(1, () => ver(0)); en(2, () => ver(1)); en(3, () => ver(2));
+  en(4, () => { ver(3); setTimeout(() => { const c = document.getElementById("cod"); c.innerHTML = c.innerHTML.replace(/MERGE/, '<span style="background:#C8102E;color:#fff;padding:0 6px;border-radius:6px">MERGE</span>'); }, 900); });
+};
+// ---------------------------------------------------------------- s07
+E.s07_arquitectura = () => {
+  cap("Arquitectura"); h(`<h1 class="titulo paso" id="t">Cómo está construida</h1>`);
+  const caja = (id, x, w, titulo, sub, borde) => `<div class="paso tarjeta ${id}" style="position:absolute;left:${x}px;top:250px;width:${w}px;border-color:${borde}"><h3>${titulo}</h3><p>${sub}</p></div>`;
+  h(caja("k3", 64, 250, "Navegador", "Computador o celular", "#555") + caja("k3", 360, 250, "Cloudflare", "Túnel https público", "#555") +
+    caja("k0", 660, 330, "Flask + waitress", "app.py · db.py · red.py", "#C8102E") + caja("k0", 1070, 300, "Neo4j 5", "Grafo · Bolt 7687", "#FFC72C"));
+  h(`<svg width="1440" height="810" style="position:absolute;inset:0;pointer-events:none">
+     <g class="paso k3"><line x1="318" y1="310" x2="356" y2="310" stroke="#888" stroke-width="3"/><line x1="614" y1="310" x2="656" y2="310" stroke="#888" stroke-width="3"/></g>
+     <g class="paso k0"><line x1="994" y1="310" x2="1066" y2="310" stroke="#FFC72C" stroke-width="4"/><text x="1030" y="296" fill="#FFC72C" font-size="16" text-anchor="middle">driver</text></g></svg>`);
+  h(`<div class="paso codigo k1" style="position:absolute;left:64px;top:420px;width:640px;font-size:21px"></div>`);
+  h(`<div style="position:absolute;left:760px;top:420px;display:flex;flex-direction:column;gap:12px">${[["Contraseñas con hash", "PBKDF2"], ["Token CSRF", "en cada formulario"], ["Mensajes de 24 h", "limpieza cada 10 min"]].map(([a, b]) =>
+    `<div class="paso k2 chip r" style="font-size:22px">${a} <span style="color:var(--gris);font-weight:500">· ${b}</span></div>`).join("")}</div>`);
+  h(`<div class="paso k4 tarjeta" style="position:absolute;left:64px;right:64px;top:620px;display:flex;gap:28px;align-items:center;border-color:var(--amarillo)">
+      <div class="mono" style="font-size:26px;color:var(--amarillo)">iniciar.bat</div><div style="font-size:22px">→ Neo4j ✓ &nbsp; → App ✓ &nbsp; → Túnel ✓ &nbsp; → <b>https://…trycloudflare.com</b></div></div>`);
+  en(0, () => { mostrar("#t"); setTimeout(() => mostrar(".k0"), 500); });
+  en(1, () => { document.querySelector(".k1").innerHTML = cy("MATCH (u:Usuario {id: $id})\nRETURN u.nombre") + '\n<span class="co">// parámetros: {"id": "u16"}</span>'; mostrar(".k1"); });
+  en(2, () => mostrar(".k2")); en(3, () => mostrar(".k3")); en(4, () => mostrar(".k4"));
+};
+// ---------------------------------------------------------------- s16
+E.s16_relacional = () => {
+  cap("Componente de investigación"); h(`<h1 class="titulo paso" id="t">¿Cuándo conviene un grafo?</h1>`);
+  h(`<div class="paso codigo q1" style="position:absolute;left:64px;top:210px;width:640px;font-size:19px">${'<span class="co">-- SQL: amigos de amigos de amigos</span>\n' + cy("SELECT DISTINCT u3.nombre\nFROM conexion c1\nJOIN conexion c2 ON c2.a = c1.b\nJOIN conexion c3 ON c3.a = c2.b\nJOIN usuario u3 ON u3.id = c3.b\nWHERE c1.a = 1")}</div>
+     <div class="paso codigo q1" style="position:absolute;left:740px;top:210px;width:636px;font-size:19px;border-color:#C8102E">${'<span class="co">// Cypher: la profundidad es un número</span>\n' + cy("MATCH (:Usuario {id:'u1'})") + '\n      -[:<span class="rl">CONECTA_CON</span><span style="background:#C8102E;color:#fff;padding:0 6px;border-radius:6px">*3</span>]-(x)\n' + cy("RETURN DISTINCT x.nombre")}</div>`);
+  h(`<div style="position:absolute;left:64px;top:500px;width:640px"><div class="paso g tarjeta" style="border-color:var(--amarillo)"><h3 style="color:var(--amarillo)">Gana el grafo</h3>
+      <p>Profundidad variable · muchos a muchos · recomendaciones por estructura · análisis de redes · esquema flexible</p></div></div>
+     <div style="position:absolute;left:740px;top:500px;width:636px"><div class="paso r tarjeta" style="border-color:#888"><h3>Gana el relacional</h3>
+      <p>Agregaciones masivas · datos tabulares · integridad transaccional estricta · escalado horizontal</p></div></div>
+     <div style="position:absolute;left:0;right:0;top:680px;text-align:center"><span class="paso hib chip a" style="font-size:26px;background:#000;white-space:nowrap">Lo mejor en un sistema real: combinar ambos (persistencia políglota)</span></div>`);
+  en(0, () => mostrar("#t")); en(1, () => mostrar(".q1")); en(2, () => mostrar(".g")); en(3, () => mostrar(".r"));
+  en(4, () => mostrar(".hib"));
+};
+// ---------------------------------------------------------------- s17
+E.s17_cierre = () => {
+  cap("Cierre");
+  h(`<ul class="lista" style="position:absolute;left:64px;top:110px;width:1300px;font-size:32px">
+      <li class="paso b1"><span class="v">✓</span> La red profesional modelada como un grafo</li>
+      <li class="paso b1"><span class="v">✓</span> Las seis preguntas del enunciado resueltas con Cypher</li>
+      <li class="paso b1"><span class="v">✓</span> UniRed: la aplicación completa funcionando</li></ul>
+     <div class="paso b2" style="position:absolute;left:64px;top:390px;font-size:30px;color:var(--amarillo);max-width:1200px;line-height:1.35">Modelar el significado de cada relación es tan importante como los datos.</div>
+     <div class="paso b3" style="position:absolute;left:0;right:0;top:480px;text-align:center">
+       <div style="display:flex;gap:18px;align-items:center;justify-content:center"><div style="width:70px;height:70px">${LOGO}</div><h1 style="font-size:70px">Uni<span style="color:var(--amarillo)">Red</span></h1></div>
+       <div style="font-size:26px;margin-top:14px">Mateo Gómez · Valerie Angulo · Sahory Blanco · Sebastián Corbacho · Cristian Viloria</div>
+       <div style="font-size:21px;color:var(--gris);margin-top:8px">Profesor Wilson Estrada Bernal · Bases de Datos · Universidad del Norte · 2026</div></div>`);
+  en(0, () => mostrar(".b1"));
+  en(1, () => mostrar(".b2"));
+  en(2, () => { document.querySelectorAll(".b1,.b2").forEach(e => e.classList.add("tenue")); mostrar(".b3"); });
+};
+
+E[ID]();
+const inicio = performance.now();
+window.empezar = () => pasos.forEach(([k, fn]) => setTimeout(fn, Math.max(0, (T[k] || 0) * 1000 - 150)));
+if (!qs.get("esperar")) window.empezar();
+</script>
+</body></html>

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Modelo UniRed</title>
+<style>
+  body { margin: 0; background: #fff; font-family: "Segoe UI", Arial, sans-serif; }
+  svg { display: block; }
+  .rel { fill: none; stroke: #6b6b6b; stroke-width: 2.2; }
+  .rel.social { stroke: #C8102E; stroke-dasharray: 7 5; }
+  .et { font-size: 15px; font-weight: 700; fill: #333; paint-order: stroke; stroke: #fff; stroke-width: 6px; stroke-linejoin: round; }
+  .et.social { fill: #9E0B23; }
+  .nodo text { font-size: 19px; font-weight: 700; fill: #fff; text-anchor: middle; dominant-baseline: central; }
+  .ley { font-size: 16px; fill: #333; }
+</style></head>
+<body>
+<svg id="s" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <defs>
+    <marker id="f" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6b6b6b"/></marker>
+    <marker id="fr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C8102E"/></marker>
+  </defs>
+  <g id="aristas"></g><g id="nodos"></g><g id="etiquetas"></g>
+  <g transform="translate(40 950)">
+    <line x1="0" y1="0" x2="50" y2="0" class="rel"/><text x="60" y="5" class="ley">Relaciones del enunciado (+ USA_TECNOLOGIA)</text>
+    <line x1="520" y1="0" x2="570" y2="0" class="rel social"/><text x="580" y="5" class="ley">Capa social de UniRed</text>
+    <text x="900" y="5" class="ley" fill="#5F5F5F">Nodo aparte: :Admin (cuenta del panel, sin relaciones)</text>
+  </g>
+</svg>
+<script>
+const N = {
+  Usuario: [520, 500, 78, "#C8102E"], Empresa: [880, 230, 64, "#1E1E1E"], Oferta: [1210, 230, 62, "#E4572E"],
+  Habilidad: [1440, 520, 66, "#B07D00"], Proyecto: [1120, 790, 64, "#7A1A2C"], Institucion: [560, 860, 66, "#2E7D4F"],
+  Publicacion: [170, 210, 70, "#2F6FB5"], Comentario: [520, 110, 64, "#3E8E8A"], Mensaje: [200, 840, 60, "#6D5A4B"],
+};
+// [desde, hacia, tipo, social, curvatura]
+const R = [
+  ["Usuario", "Empresa", "TRABAJA_EN", 0, 0], ["Empresa", "Oferta", "PUBLICA", 0, 0], ["Oferta", "Habilidad", "REQUIERE", 0, 0],
+  ["Usuario", "Oferta", "POSTULA_A", 0, 0.1], ["Usuario", "Habilidad", "TIENE_HABILIDAD", 0, 0.04],
+  ["Usuario", "Proyecto", "PARTICIPA_EN", 0, 0.12], ["Proyecto", "Habilidad", "USA_TECNOLOGIA", 0, 0],
+  ["Usuario", "Institucion", "ESTUDIO_EN", 1, 0], ["Usuario", "Publicacion", "PUBLICO", 1, 0.16],
+  ["Usuario", "Publicacion", "REACCIONO", 1, -0.16], ["Usuario", "Comentario", "ESCRIBIO", 1, 0],
+  ["Comentario", "Publicacion", "SOBRE", 1, 0], ["Usuario", "Mensaje", "ENVIO", 1, 0.2], ["Mensaje", "Usuario", "PARA", 1, 0.2],
+];
+const ns = "http://www.w3.org/2000/svg", el = (t, a, p) => { const e = document.createElementNS(ns, t); for (const k in a) e.setAttribute(k, a[k]); p.append(e); return e; };
+const A = document.getElementById("aristas"), Nd = document.getElementById("nodos"), E = document.getElementById("etiquetas");
+function etiqueta(x, y, txt, social) { const t = el("text", { x, y, class: "et" + (social ? " social" : ""), "text-anchor": "middle" }, E); t.textContent = txt; }
+for (const [a, b, tipo, soc, c] of R) {
+  const [x1, y1, r1] = N[a], [x2, y2, r2] = N[b];
+  const dx = x2 - x1, dy = y2 - y1, d = Math.hypot(dx, dy), ux = dx / d, uy = dy / d;
+  const mx = (x1 + x2) / 2 - uy * c * d, my = (y1 + y2) / 2 + ux * c * d;
+  const s = [x1 + ux * r1, y1 + uy * r1], t = [x2 - ux * (r2 + 4), y2 - uy * (r2 + 4)];
+  el("path", { d: `M${s} Q${mx},${my} ${t}`, class: "rel" + (soc ? " social" : ""), "marker-end": soc ? "url(#fr)" : "url(#f)" }, A);
+  const lx = 0.25 * s[0] + 0.5 * mx + 0.25 * t[0], ly = 0.25 * s[1] + 0.5 * my + 0.25 * t[1];
+  etiqueta(lx, ly + 5, tipo, soc);
+}
+// bucles de Usuario a Usuario
+const [ux0, uy0] = N.Usuario;
+el("path", { d: `M${ux0 - 70},${uy0 - 34} C${ux0 - 250},${uy0 - 110} ${ux0 - 250},${uy0 + 110} ${ux0 - 74},${uy0 + 26}`, class: "rel", "marker-end": "url(#f)" }, A);
+etiqueta(ux0 - 215, uy0 + 5, "CONECTA_CON", 0);
+el("path", { d: `M${ux0 + 70},${uy0 - 36} C${ux0 + 230},${uy0 - 90} ${ux0 + 230},${uy0 + 60} ${ux0 + 76},${uy0 + 22}`, class: "rel social", "marker-end": "url(#fr)" }, A);
+etiqueta(ux0 + 250, uy0 - 30, "SOLICITA_CONEXION", 1);
+for (const k in N) {
+  const [x, y, r, col] = N[k], g = el("g", { class: "nodo" }, Nd);
+  el("circle", { cx: x, cy: y, r, fill: col, stroke: "#fff", "stroke-width": 4 }, g);
+  const t = el("text", { x, y }, g); t.textContent = k;
+}
+</script>
+</body></html>

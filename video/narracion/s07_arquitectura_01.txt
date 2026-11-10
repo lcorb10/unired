@@ -1,0 +1,1 @@
+Todas las consultas reciben parámetros; nunca se pega texto del usuario dentro de la consulta, y eso evita la inyección de Sáifer.

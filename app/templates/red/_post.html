@@ -1,0 +1,86 @@
+{% import "_comun.html" as c with context %}
+{% macro post(p) %}
+{% set conteo = {} %}{% for t in p.reacciones %}{% set _ = conteo.update({t: conteo.get(t, 0) + 1}) %}{% endfor %}
+{% set mia = p.mia[0] if p.mia else none %}
+{% set info_mia = reacciones_info[mia] if mia else reacciones_info['recomendar'] %}
+<article class="caja post" id="post-{{ p.id }}" data-id="{{ p.id }}">
+  <div class="post-cab">
+    {{ c.av(p.autor) }}
+    <div class="quien">
+      <a class="n" href="{{ url_for('red.perfil', uid=p.autor.id) }}">{{ p.autor.nombre }}</a>
+      {% if p.autor.id == session.uid %}<span class="grado">· Tú</span>{% elif p.en_red %}<span class="grado">· 1.º</span>{% endif %}
+      <div class="t">{{ p.autor.titular }}</div>
+      <div class="t"><time datetime="{{ p.fecha | iso }}">{{ p.fecha | hace }}</time> · <i class="bi bi-globe-americas"></i></div>
+    </div>
+    {% if p.autor.id == session.uid %}
+    <div class="dropdown">
+      <button class="btn btn-plano btn-sm" data-bs-toggle="dropdown" aria-label="Opciones de la publicación"><i class="bi bi-three-dots"></i></button>
+      <div class="dropdown-menu dropdown-menu-end">
+        <form method="post" action="{{ url_for('red.eliminar_publicacion', pid=p.id) }}">{{ c.csrf() }}
+          <button class="dropdown-item text-danger"><i class="bi bi-trash3 me-2"></i>Eliminar publicación</button></form>
+      </div>
+    </div>
+    {% elif not p.en_red %}
+    <form method="post" action="{{ url_for('red.red_accion', uid=p.autor.id, accion='conectar') }}">{{ c.csrf() }}
+      <button class="btn btn-sm btn-plano" style="color: var(--rojo)"><i class="bi bi-person-plus-fill"></i> Conectar</button></form>
+    {% endif %}
+  </div>
+  {% if p.texto %}<div class="post-texto">{{ p.texto }}</div>{% else %}<div style="height:10px"></div>{% endif %}
+  {% if p.media %}
+  <div class="post-media">
+    {% if p.tipo_media == 'video' %}
+    <video src="{{ url_for('media', nombre=p.media) }}" controls preload="metadata" playsinline></video>
+    {% else %}
+    <img src="{{ url_for('media', nombre=p.media) }}" alt="Imagen publicada por {{ p.autor.nombre }}" loading="lazy">
+    {% endif %}
+  </div>
+  {% endif %}
+  <div class="post-cuenta">
+    <span class="burbujas">
+      {% for t, n in conteo | dictsort(by='value', reverse=true) %}{% if loop.index <= 3 %}
+      <span class="ic" style="background: {{ reacciones_info[t][2] }}" title="{{ reacciones_info[t][0] }}: {{ n }}"><i class="bi {{ reacciones_info[t][1] }}"></i></span>
+      {% endif %}{% endfor %}
+      {% if p.reacciones %}<span class="num">{{ p.reacciones | length }}</span>{% endif %}
+    </span>
+    {% if p.comentarios %}<span>{{ p.comentarios | length }} comentario{{ 's' if p.comentarios | length != 1 }}</span>{% endif %}
+  </div>
+  <div class="post-acciones">
+    <div class="reaccionar">
+      <div class="paleta" role="group" aria-label="Elegir reacción">
+        {% for t, info in reacciones_info.items() %}
+        <button type="button" data-tipo="{{ t }}" style="--c: {{ info[2] }}" aria-label="{{ info[0] }}"><i class="bi {{ info[1] }}"></i><span>{{ info[0] }}</span></button>
+        {% endfor %}
+      </div>
+      <button type="button" class="btn-reaccion w-100 {{ 'reaccion-mia' if mia }}" data-mia="{{ mia or '' }}" style="--c: {{ info_mia[2] }}" aria-pressed="{{ 'true' if mia else 'false' }}">
+        <i class="bi {{ info_mia[1] if mia else 'bi-hand-thumbs-up' }}"></i><span>{{ info_mia[0] if mia else 'Recomendar' }}</span></button>
+    </div>
+    <button type="button" class="btn-comentar"><i class="bi bi-chat-text"></i><span>Comentar</span></button>
+    <a href="{{ url_for('red.publicacion', pid=p.id) }}"><i class="bi bi-link-45deg"></i><span>Enlace</span></a>
+  </div>
+  <div class="comentarios">
+    <form method="post" action="{{ url_for('red.comentar', pid=p.id) }}" hidden>{{ c.csrf() }}
+      {{ c.av(yo.u if yo else {}, 'sm', enlace=False) }}
+      <input class="form-control" name="texto" placeholder="Añadir un comentario…" maxlength="1500" required aria-label="Comentario">
+      <button class="btn btn-sm btn-rojo">Comentar</button>
+    </form>
+    {% for k in p.comentarios %}
+    {% if loop.index == 3 %}<button type="button" class="ver-mas px-0 mt-2" data-mas-comentarios>Ver {{ p.comentarios | length - 2 }} comentario{{ 's' if p.comentarios | length - 2 != 1 }} más</button>{% endif %}
+    <div class="comentario" {% if loop.index > 2 %}hidden{% endif %}>
+      {{ c.av(k.autor, 'sm') }}
+      <div class="globo">
+        <div class="d-flex justify-content-between gap-2">
+          <div><a class="n" href="{{ url_for('red.perfil', uid=k.autor.id) }}">{{ k.autor.nombre }}</a>
+            <div class="t">{{ k.autor.titular }}</div></div>
+          <div class="t text-nowrap">{{ k.fecha | hace }}
+            {% if k.autor.id == session.uid %}
+            <form class="d-inline" method="post" action="{{ url_for('red.eliminar_comentario', kid=k.id) }}">{{ c.csrf() }}
+              <button class="btn btn-link p-0 ms-1 t" aria-label="Eliminar comentario"><i class="bi bi-trash3"></i></button></form>
+            {% endif %}</div>
+        </div>
+        <p>{{ k.texto }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</article>
+{% endmacro %}

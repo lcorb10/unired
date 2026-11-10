@@ -1,0 +1,40 @@
+{# Tabla genérica a partir de una lista de diccionarios. Oculta las columnas internas "id". #}
+{% macro tabla(filas, vacio="Sin resultados.", ocultar=('id',)) %}
+  {% if filas %}
+  {% set cols = filas[0].keys() | reject('in', ocultar) | list %}
+  <div class="table-responsive">
+    <table class="table table-sm table-hover align-middle">
+      <thead class="table-light"><tr>
+        {% for k in cols %}<th>{{ k | replace('_', ' ') | capitalize }}</th>{% endfor %}
+      </tr></thead>
+      <tbody>
+      {% for f in filas %}<tr>
+        {% for k in cols %}{% set v = f[k] %}
+          <td>{% if v is iterable and v is not string %}{{ v | join(', ') }}{% elif v is none %}<span class="text-muted">—</span>{% else %}{{ v }}{% endif %}</td>
+        {% endfor %}
+      </tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="alert alert-light border">{{ vacio }}</div>
+  {% endif %}
+{% endmacro %}
+
+{% macro select(name, items, selected=None, label=None, multiple=False, auto=False) %}
+  {% if label %}<label class="form-label">{{ label }}</label>{% endif %}
+  <select name="{{ name }}" class="form-select" {% if multiple %}multiple size="6"{% endif %}
+          {% if auto %}onchange="this.form.submit()"{% endif %}>
+    {% for i in items %}
+      <option value="{{ i.id }}" {% if i.id == selected %}selected{% endif %}>{{ i.texto }}</option>
+    {% endfor %}
+  </select>
+{% endmacro %}
+
+{% macro leyenda() %}
+  <div class="small mt-2">
+    {% for k, c in colores.items() %}
+      <span class="me-3"><span class="punto" style="background: {{ c }}"></span>{{ k }}</span>
+    {% endfor %}
+  </div>
+{% endmacro %}

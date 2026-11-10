@@ -1,0 +1,1 @@
+Las relaciones conectan dos nodos, tienen dirección, un tipo, y también pueden tener propiedades, como la fecha desde la que dos personas se conocen.

@@ -1,0 +1,70 @@
+{% import "_comun.html" as c with context %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="csrf" content="{{ csrf_token() }}">
+  <meta name="theme-color" content="#000000">
+  <title>{% block title %}{% endblock %}{% if self.title() %} | {% endif %}UniRed</title>
+  <link rel="icon" href="{{ url_for('static', filename='logo.svg') }}" type="image/svg+xml">
+  <link href="{{ url_for('static', filename='vendor/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='vendor/bootstrap-icons.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='unired.css') }}" rel="stylesheet">
+</head>
+<body>
+{% set seccion = seccion | default(request.endpoint) %}
+{% set nav = [('red.inicio', 'Inicio', 'bi-house-door-fill', 0), ('red.mi_red', 'Mi red', 'bi-people-fill', yo.solicitudes if yo else 0),
+              ('red.empleos', 'Empleos', 'bi-briefcase-fill', 0), ('red.mensajes', 'Mensajes', 'bi-chat-dots-fill', yo.sin_leer if yo else 0),
+              ('red.notificaciones', 'Notificaciones', 'bi-bell-fill', yo.notif if yo else 0)] %}
+<header class="barra">
+  <div class="interior">
+    <a class="logo" href="{{ url_for('red.inicio') }}" aria-label="UniRed, inicio">{{ c.logo_svg() }}<span class="marca">Uni<b>Red</b></span></a>
+    <form class="buscador" action="{{ url_for('red.buscar') }}" role="search">
+      <i class="bi bi-search"></i>
+      <input name="q" value="{{ q or '' }}" placeholder="Buscar personas, empresas, empleos o habilidades" aria-label="Buscar">
+    </form>
+    <nav class="nav-iconos" aria-label="Secciones">
+      {% for ep, txt, ic, n in nav %}
+      <a href="{{ url_for(ep) }}" class="{{ 'activo' if seccion == ep or (ep == 'red.mensajes' and seccion == 'red.mensajes') }}" {% if seccion == ep %}aria-current="page"{% endif %}>
+        <i class="bi {{ ic }}"></i><span>{{ txt }}</span>{% if n %}<span class="punto-num">{{ n }}</span>{% endif %}</a>
+      {% endfor %}
+      <div class="dropdown">
+        <button type="button" class="{{ 'activo' if seccion in ('red.perfil', 'red.perfil_editar') }}" data-bs-toggle="dropdown" aria-expanded="false">
+          {{ c.av(yo.u if yo else {}, 'xs', enlace=False) }}<span>Yo <i class="bi bi-caret-down-fill" style="font-size:.6rem"></i></span></button>
+        <div class="dropdown-menu dropdown-menu-end p-0" style="width: 270px; border-radius: 10px; overflow: hidden">
+          {% if yo %}
+          <div class="d-flex gap-2 p-3">{{ c.av(yo.u, 'md', enlace=False) }}
+            <div style="line-height:1.25"><b>{{ yo.u.nombre }}</b><div class="small muted">{{ yo.u.titular }}</div></div></div>
+          <div class="px-3 pb-3"><a class="btn btn-sm btn-borde w-100" href="{{ url_for('red.perfil', uid=yo.u.id) }}">Ver perfil</a></div>
+          {% endif %}
+          <div class="separa"></div>
+          <a class="dropdown-item py-2" href="{{ url_for('red.perfil_editar') }}"><i class="bi bi-pencil me-2"></i>Editar perfil y estudios</a>
+          <a class="dropdown-item py-2" href="{{ url_for('red.empleos') }}#postulaciones"><i class="bi bi-send-check me-2"></i>Mis postulaciones</a>
+          <div class="separa"></div>
+          <form method="post" action="{{ url_for('auth.salir') }}">{{ c.csrf() }}
+            <button class="dropdown-item py-2"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión</button></form>
+        </div>
+      </div>
+    </nav>
+  </div>
+</header>
+{{ c.avisos() }}
+<main class="pagina">{% block content %}{% endblock %}</main>
+
+<nav class="tabbar" aria-label="Secciones">
+  {% for ep, txt, ic, n in nav %}
+  <a href="{{ url_for(ep) }}" class="{{ 'activo' if seccion == ep }}"><i class="bi {{ ic }}"></i>{{ txt if txt != 'Notificaciones' else 'Avisos' }}{% if n %}<span class="punto-num" style="top:2px">{{ n }}</span>{% endif %}</a>
+  {% endfor %}
+  {% if yo %}<a href="{{ url_for('red.perfil', uid=yo.u.id) }}" class="{{ 'activo' if seccion == 'red.perfil' }}"><i class="bi bi-person-circle"></i>Yo</a>{% endif %}
+</nav>
+
+{{ c.panel_cypher() }}
+{{ c.pantalla_carga(intro=session.pop('intro', False)) }}
+<script>window.REACCIONES = {{ reacciones_info | tojson }};
+  for (const k in window.REACCIONES) { const [nombre, icono, color] = window.REACCIONES[k]; window.REACCIONES[k] = {nombre, icono, color}; }</script>
+<script src="{{ url_for('static', filename='vendor/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='unired.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

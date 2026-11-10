@@ -1,0 +1,125 @@
+{% extends "red/base.html" %}
+{% import "_comun.html" as c with context %}
+{% from "red/_post.html" import post with context %}
+{% block title %}{{ p.u.nombre }}{% endblock %}
+{% block content %}
+<div class="dos-col">
+  <div>
+    <section class="caja perfil-cab">
+      <div class="portada grande">{% if p.u.portada %}<img src="{{ url_for('media', nombre=p.u.portada) }}" alt="">{% endif %}</div>
+      {{ c.av(p.u, 'xl', enlace=False) }}
+      <div class="cuerpo">
+        <div class="d-flex flex-wrap justify-content-between gap-3">
+          <div>
+            <h1>{{ p.u.nombre }} {% if camino %}<span class="grado fs-6">· {{ camino.grado }}.º</span>{% endif %}</h1>
+            <div class="titular">{{ p.u.titular }}</div>
+            <div class="small muted">{{ p.u.ciudad }}{% if p.u.anios_experiencia %} · {{ p.u.anios_experiencia }} años de experiencia{% endif %}</div>
+            <a class="small fw-bold" href="{{ url_for('red.mi_red') if propio else '#comunes' }}">{{ p.contactos }} contacto{{ 's' if p.contactos != 1 }}</a>
+          </div>
+          <div class="text-end small">
+            {% if p.empresa %}<div class="fw-bold"><i class="bi bi-building me-1" style="color:var(--rojo)"></i>{{ p.empresa.nombre }}</div>{% endif %}
+            {% if p.estudios %}<div class="fw-bold mt-1"><i class="bi bi-mortarboard-fill me-1" style="color:var(--rojo)"></i>{{ p.estudios[0].institucion }}</div>{% endif %}
+          </div>
+        </div>
+        <div class="botones">
+          {% if propio %}
+            <a class="btn btn-rojo" href="{{ url_for('red.perfil_editar') }}"><i class="bi bi-pencil"></i> Editar perfil</a>
+            <a class="btn btn-borde" href="{{ url_for('red.perfil_editar') }}#estudio"><i class="bi bi-plus-lg"></i> Añadir estudios</a>
+          {% else %}
+            {% if p.estado == 'conectado' %}
+              <a class="btn btn-rojo" href="{{ url_for('red.mensajes', uid=uid) }}"><i class="bi bi-send-fill"></i> Enviar mensaje</a>
+              <form method="post" action="{{ url_for('red.red_accion', uid=uid, accion='desconectar') }}">{{ c.csrf() }}
+                <button class="btn btn-borde"><i class="bi bi-person-dash"></i> Eliminar contacto</button></form>
+            {% elif p.estado == 'enviada' %}
+              <form method="post" action="{{ url_for('red.red_accion', uid=uid, accion='cancelar') }}">{{ c.csrf() }}
+                <button class="btn btn-borde"><i class="bi bi-clock"></i> Pendiente · Retirar</button></form>
+            {% elif p.estado == 'recibida' %}
+              <form method="post" action="{{ url_for('red.red_accion', uid=uid, accion='aceptar') }}">{{ c.csrf() }}
+                <button class="btn btn-rojo"><i class="bi bi-check-lg"></i> Aceptar invitación</button></form>
+              <form method="post" action="{{ url_for('red.red_accion', uid=uid, accion='rechazar') }}">{{ c.csrf() }}
+                <button class="btn btn-borde">Ignorar</button></form>
+            {% else %}
+              <form method="post" action="{{ url_for('red.red_accion', uid=uid, accion='conectar') }}">{{ c.csrf() }}
+                <button class="btn btn-rojo"><i class="bi bi-person-plus-fill"></i> Conectar</button></form>
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    {% if not propio %}
+    <section class="caja caja-p">
+      <h2>Cómo llegas a {{ p.u.nombre.split()[0] }}</h2>
+      {% if camino %}
+        <p class="small muted mb-2">Camino más corto por contactos (<code>shortestPath</code> sobre <code>CONECTA_CON</code>):
+          {{ 'contacto directo' if camino.grado == 1 else camino.grado ~ ' saltos' }}.</p>
+        <div class="camino">
+          {% for n in camino.nodos %}
+            <a class="paso" href="{{ url_for('red.perfil', uid=n.id) }}">{{ c.av(n, 'sm', enlace=False) }}{{ 'Tú' if loop.first else n.nombre }}</a>
+            {% if not loop.last %}<i class="bi bi-arrow-right flecha"></i>{% endif %}
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="muted mb-0">Todavía no hay un camino de contactos entre ustedes. Conectar es el primer paso.</p>
+      {% endif %}
+      {% if p.comunes %}
+      <div id="comunes" class="mt-3"><b class="small">{{ p.comunes | length }} contacto{{ 's' if p.comunes | length != 1 }} en común:</b>
+        <div class="d-flex flex-wrap gap-2 mt-2">{% for m in p.comunes %}<a class="chip" href="{{ url_for('red.perfil', uid=m.id) }}">{{ m.nombre }}</a>{% endfor %}</div></div>
+      {% endif %}
+    </section>
+    {% endif %}
+
+    {% if p.u.acerca %}
+    <section class="caja caja-p"><h2>Acerca de</h2><p class="mb-0" style="white-space: pre-line">{{ p.u.acerca }}</p></section>
+    {% endif %}
+
+    <section class="caja caja-p">
+      <h2>Experiencia</h2>
+      {% if p.empresa %}
+      <div class="item-lista"><div class="ico emp"><i class="bi bi-building"></i></div>
+        <div><b>{{ p.empresa.cargo or 'Cargo sin especificar' }}</b>
+          <a href="{{ url_for('red.empresa', eid=p.empresa.id) }}">{{ p.empresa.nombre }}</a>
+          {% if p.empresa.desde %}<div class="small muted">Desde {{ p.empresa.desde }}</div>{% endif %}</div></div>
+      {% else %}<p class="muted mb-0">Sin experiencia registrada.</p>{% endif %}
+    </section>
+
+    <section class="caja caja-p" id="estudios">
+      <h2>Educación</h2>
+      {% for e in p.estudios %}
+      <div class="item-lista"><div class="ico uni"><i class="bi bi-mortarboard-fill"></i></div>
+        <div><b>{{ e.institucion }}</b>{{ e.titulo }}{% if e.area %}, {{ e.area }}{% endif %}
+          {% if e.inicio or e.fin %}<div class="small muted">{{ e.inicio }}{% if e.fin %} – {{ e.fin }}{% elif e.inicio %} – actualidad{% endif %}</div>{% endif %}</div></div>
+      {% else %}<p class="muted mb-0">Sin estudios registrados.</p>{% endfor %}
+    </section>
+
+    <section class="caja caja-p">
+      <h2>Habilidades</h2>
+      {% for h in p.habilidades %}
+      <div class="d-flex justify-content-between align-items-center py-2 {{ 'separa' if not loop.first }}">
+        <a href="{{ url_for('red.buscar', q=h.nombre) }}" class="fw-semibold" style="color:var(--tinta)">{{ h.nombre }}</a>
+        <span class="nivel" title="Nivel {{ h.nivel }} de 5">{% for i in range(5) %}<span class="{{ 'on' if i < h.nivel }}"></span>{% endfor %}</span>
+      </div>
+      {% else %}<p class="muted mb-0">Sin habilidades registradas.</p>{% endfor %}
+    </section>
+
+    {% if p.proyectos %}
+    <section class="caja caja-p"><h2>Proyectos</h2>
+      {% for pr in p.proyectos %}<div class="item-lista"><div class="ico"><i class="bi bi-kanban"></i></div>
+        <div><b>{{ pr.nombre }}</b><span class="small muted">{{ pr.descripcion }}</span></div></div>{% endfor %}
+    </section>
+    {% endif %}
+
+    <h2 class="h5 mt-4 mb-2 px-1">Actividad</h2>
+    {% for pp in posts %}{{ post(pp) }}{% else %}<div class="caja caja-p muted">Aún no ha publicado nada.</div>{% endfor %}
+  </div>
+
+  <aside class="lateral-fijo">
+    <div class="caja caja-p">
+      <h2>Datos de contacto</h2>
+      {% if propio or p.estado == 'conectado' %}
+        <div class="small"><i class="bi bi-envelope me-2"></i>{{ p.u.email }}</div>
+      {% else %}<p class="small muted mb-0">Conecta para ver su correo.</p>{% endif %}
+    </div>
+  </aside>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "admin/base.html" %}
+{% import "admin/_macros.html" as m with context %}
+{% block title %}Analítica{% endblock %}
+{% block content %}
+<h1 class="h3 mb-4">Panel de analítica</h1>
+<div class="row g-4">
+  <div class="col-lg-6"><div class="card p-3 h-100">
+    <h2 class="h6">Usuarios más influyentes</h2>
+    <p class="form-text mt-0">Centralidad de grado (Cypher) y PageRank sobre las relaciones CONECTA_CON.</p>
+    <canvas id="c1" height="170"></canvas>
+    {{ m.tabla(influyentes) }}
+  </div></div>
+  <div class="col-lg-6"><div class="card p-3 h-100">
+    <h2 class="h6">Habilidades más demandadas</h2>
+    <p class="form-text mt-0">Brecha = ofertas que la piden − profesionales que la tienen.</p>
+    <canvas id="c2" height="170"></canvas>
+    {{ m.tabla(demandadas) }}
+  </div></div>
+  <div class="col-12"><div class="card p-3">
+    <h2 class="h6">Comunidades detectadas</h2>
+    <p class="form-text mt-0">Modularidad voraz (networkx) sobre la red de contactos. El tamaño del nodo es su número de conexiones.</p>
+    {% for c in comunidades %}
+      <div class="mb-1"><span class="punto" style="background: {{ c.color }}"></span>
+        <b>Comunidad {{ c.n }}</b> ({{ c.miembros | length }}): {{ c.miembros | join(', ') }}</div>
+    {% else %}<div class="text-muted">No hay conexiones entre usuarios.</div>{% endfor %}
+    <div id="g" class="grafo mt-3"></div>
+  </div></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  const inf = {{ influyentes | tojson }}, dem = {{ demandadas[:10] | tojson }};
+  const opts = {indexAxis: 'y', plugins: {legend: {display: false}},
+                scales: {x: {beginAtZero: true, ticks: {precision: 0}}}};
+  new Chart(document.getElementById('c1'), {type: 'bar', options: opts,
+    data: {labels: inf.map(x => x.usuario),
+           datasets: [{label: 'Conexiones', data: inf.map(x => x.conexiones), backgroundColor: '#4C78A8'}]}});
+  new Chart(document.getElementById('c2'), {type: 'bar', options: opts,
+    data: {labels: dem.map(x => x.habilidad),
+           datasets: [{label: 'Ofertas', data: dem.map(x => x.demanda), backgroundColor: '#E45756'}]}});
+  dibujarGrafo('g', {{ grafo | tojson }}, false);
+</script>
+{% endblock %}

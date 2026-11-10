@@ -1,0 +1,30 @@
+{% extends "auth/_marco.html" %}
+{% block title %}Crear cuenta{% endblock %}
+{% block lema %}Tus estudios también son experiencia.{% endblock %}
+{% block bajada %}Registra dónde estudias y qué sabes hacer. UniRed te sugiere contactos y empleos recorriendo las conexiones entre personas, habilidades y empresas.{% endblock %}
+{% block form %}
+<form method="post">{{ c.csrf() }}
+  <h2>Crear cuenta</h2>
+  <p class="muted mb-4">¿Ya tienes cuenta? <a class="fw-bold" href="{{ url_for('auth.entrar') }}">Inicia sesión</a></p>
+  <div class="row g-2">
+    <div class="col-12"><label class="form-label" for="nombre">Nombre completo</label>
+      <input class="form-control" id="nombre" name="nombre" required maxlength="80" autocomplete="name" value="{{ f.nombre or '' }}"></div>
+    <div class="col-12"><label class="form-label" for="email">Correo</label>
+      <input class="form-control" id="email" name="email" type="email" required autocomplete="email" value="{{ f.email or '' }}"></div>
+    <div class="col-12"><label class="form-label" for="clave">Contraseña <span class="muted small">(mínimo 8 caracteres)</span></label>
+      <input class="form-control" id="clave" name="clave" type="password" minlength="8" required autocomplete="new-password"></div>
+    <div class="col-12"><label class="form-label" for="titular">Titular</label>
+      <input class="form-control" id="titular" name="titular" maxlength="120" placeholder="Estudiante de Ingeniería de Sistemas" value="{{ f.titular or '' }}"></div>
+    <div class="col-sm-6"><label class="form-label" for="ciudad">Ciudad</label>
+      <input class="form-control" id="ciudad" name="ciudad" maxlength="60" placeholder="Barranquilla" value="{{ f.ciudad or '' }}"></div>
+    <div class="col-sm-6"><label class="form-label" for="institucion">Dónde estudias</label>
+      <input class="form-control" id="institucion" name="institucion" list="inst" maxlength="120" value="{{ f.institucion or 'Universidad del Norte' }}">
+      <datalist id="inst">{% for i in instituciones or [] %}<option value="{{ i }}">{% endfor %}</datalist></div>
+    <div class="col-sm-8"><label class="form-label" for="programa">Programa</label>
+      <input class="form-control" id="programa" name="programa" maxlength="120" placeholder="Ingeniería de Sistemas" value="{{ f.programa or '' }}"></div>
+    <div class="col-sm-4"><label class="form-label" for="inicio">Año de inicio</label>
+      <input class="form-control" id="inicio" name="inicio" inputmode="numeric" maxlength="4" placeholder="2023" value="{{ f.inicio or '' }}"></div>
+  </div>
+  <button class="btn btn-rojo w-100 mt-4">Crear cuenta</button>
+</form>
+{% endblock %}

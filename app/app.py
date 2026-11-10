@@ -5,6 +5,7 @@
 """
 import json
 import os
+import pathlib
 import secrets
 import threading
 import time
@@ -67,6 +68,15 @@ def _cypher_de_accion(resp):
     if request.method == "POST" and g.get("cypher") and not request.path.startswith("/api/"):
         session["cy_prev"] = {"ruta": request.path, "consultas": _resumir(g.cypher)}
     return resp
+
+
+# ============================================ caché de estáticos (versión por fecha)
+@app.url_defaults
+def _version_estaticos(endpoint, valores):
+    if endpoint == "static" and "filename" in valores and "v" not in valores:
+        f = pathlib.Path(app.static_folder) / valores["filename"]
+        if f.is_file():
+            valores["v"] = int(f.stat().st_mtime)
 
 
 # ================================================================= CSRF

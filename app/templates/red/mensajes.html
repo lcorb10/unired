@@ -28,7 +28,7 @@
     </div>
     <div class="aviso-24"><i class="bi bi-clock-history"></i> Los mensajes se eliminan automáticamente {{ horas }} horas después de enviarse.</div>
     <div class="hilo-cuerpo" id="hilo" aria-live="polite">
-      {% for m in hilo %}<div class="msg {{ 'mio' if m.mio }}" data-fecha="{{ m.fecha | iso }}">{{ m.texto }}<span class="h">{{ m.fecha | hora }}</span></div>
+      {% for m in hilo %}<div class="msg {{ 'mio' if m.mio }}" data-id="{{ m.id }}" data-fecha="{{ m.fecha | iso }}">{{ m.texto }}<span class="h">{{ m.fecha | hora }}</span></div>
       {% else %}<p class="muted text-center my-auto" id="vacio">Escríbele a {{ otro.nombre.split()[0] }}. Nadie más puede ver esta conversación.</p>{% endfor %}
     </div>
     <form class="hilo-pie" id="form-msg">
@@ -49,16 +49,21 @@
 (() => {
   const hilo = document.getElementById('hilo'), form = document.getElementById('form-msg');
   const ta = form.querySelector('textarea'), url = {{ url_for('red.api_mensajes', uid=otro.id) | tojson }};
-  const vistos = new Set();
+  const vistos = new Set([...hilo.querySelectorAll('.msg[data-id]')].map(m => m.dataset.id));
+  const cerca = () => hilo.scrollHeight - hilo.scrollTop - hilo.clientHeight < 120;
+  const aviso = document.createElement('div'); aviso.className = 'small text-danger px-3'; aviso.hidden = true;
+  form.before(aviso);
   const ultima = () => { const m = hilo.querySelectorAll('.msg'); return m.length ? m[m.length - 1].dataset.fecha : ''; };
   const abajo = () => { hilo.scrollTop = hilo.scrollHeight; };
-  function pintar(m) {
+  function pintar(m, forzar) {
     if (vistos.has(m.id)) return; vistos.add(m.id);
+    const bajar = forzar || cerca();
     document.getElementById('vacio')?.remove();
     const d = document.createElement('div');
     d.className = 'msg' + (m.mio ? ' mio' : ''); d.dataset.fecha = m.fecha; d.textContent = m.texto;
     const h = document.createElement('span'); h.className = 'h'; h.textContent = m.hora; d.append(h);
-    hilo.append(d); abajo();
+    d.dataset.id = m.id;
+    hilo.append(d); if (bajar) abajo();
   }
   abajo();
   form.addEventListener('submit', async e => {
@@ -66,17 +71,23 @@
     const texto = ta.value.trim(); if (!texto) return;
     ta.value = '';
     const fd = new FormData(); fd.append('texto', texto); fd.append('csrf', UNIRED.csrf);
-    const r = await fetch(url, { method: 'POST', body: fd });
-    const j = await r.json();
-    if (r.ok) pintar(j); else { ta.value = texto; alert(j.error || 'No se pudo enviar.'); }
+    try {
+      const r = await fetch(url, { method: 'POST', body: fd });
+      const j = await r.json().catch(() => ({}));
+      if (r.ok) { pintar(j, true); aviso.hidden = true; }
+      else { ta.value = ta.value || texto; aviso.textContent = j.error || (r.status === 400 ? 'Tu sesión expiró: recarga la página.' : 'No se pudo enviar. Inténtalo de nuevo.'); aviso.hidden = false; }
+    } catch (_) { ta.value = ta.value || texto; aviso.textContent = 'Sin conexión. Inténtalo de nuevo.'; aviso.hidden = false; }
+    ta.focus();
   });
   ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); } });
   // Mensajes nuevos cada 3 s (sin recargar la página).
   setInterval(async () => {
     if (document.hidden) return;
     const desde = ultima();
-    const r = await fetch(url + (desde ? '?desde=' + encodeURIComponent(desde) : ''));
-    if (r.ok) (await r.json()).forEach(pintar);
+    try {
+      const r = await fetch(url + (desde ? '?desde=' + encodeURIComponent(desde) : ''));
+      if (r.ok) (await r.json()).forEach(m => pintar(m));
+    } catch (_) { /* sin conexión: se reintenta en 3 s */ }
   }, 3000);
 })();
 </script>

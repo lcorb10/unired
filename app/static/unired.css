@@ -243,23 +243,23 @@ a:hover { text-decoration: underline; }
 .ajuste.alto .b span { background: #2E8B57; }
 
 /* ---------------------------------- mensajes ---------------------------------- */
-.mensajeria { display: grid; grid-template-columns: 320px minmax(0, 1fr); height: calc(100vh - var(--barra) - 70px);
+.mensajeria { display: grid; grid-template-columns: 320px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); height: calc(100vh - var(--barra) - 70px); height: calc(100dvh - var(--barra) - 70px);
   min-height: 480px; overflow: hidden; }
-.convs { border-right: 1px solid var(--linea); overflow-y: auto; }
+.convs { border-right: 1px solid var(--linea); overflow-y: auto; min-height: 0; }
 .conv { display: flex; gap: 10px; padding: 12px 14px; color: var(--tinta); border-left: 3px solid transparent; }
 .conv:hover { background: #F7F6F4; text-decoration: none; }
 .conv.activa { background: var(--rojo-suave); border-left-color: var(--rojo); }
 .conv .ult { font-size: .8rem; color: var(--gris); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .conv .nuevo { background: var(--rojo); color: #fff; border-radius: 9px; font-size: .7rem; font-weight: 700; padding: 0 6px; height: 18px; }
-.hilo { display: flex; flex-direction: column; min-width: 0; }
+.hilo { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .hilo-cab { display: flex; gap: 10px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--linea); }
-.hilo-cuerpo { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 6px; background: #FAFAF9; }
+.hilo-cuerpo { flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px; display: flex; flex-direction: column; gap: 6px; background: #FAFAF9; }
 .msg { max-width: 72%; padding: 8px 12px; border-radius: 14px; background: #fff; border: 1px solid var(--linea);
-  align-self: flex-start; white-space: pre-line; overflow-wrap: anywhere; }
+  align-self: flex-start; white-space: pre-line; overflow-wrap: anywhere; flex-shrink: 0; }
 .msg.mio { align-self: flex-end; background: var(--rojo); border-color: var(--rojo); color: #fff; }
 .msg .h { display: block; font-size: .68rem; opacity: .7; margin-top: 2px; text-align: right; }
-.hilo-pie { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--linea); }
-.hilo-pie textarea { resize: none; border-radius: 18px; }
+.hilo-pie { flex-shrink: 0; display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--linea); }
+.hilo-pie textarea { resize: none; border-radius: 18px; max-height: 120px; }
 .aviso-24 { font-size: .74rem; color: var(--gris); text-align: center; padding: 6px; background: var(--amarillo-suave); }
 
 /* ---------------------------------- notificaciones ---------------------------------- */
@@ -369,7 +369,7 @@ a:hover { text-decoration: underline; }
   .pagina { padding-bottom: 96px; }
   .cy-fab { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); right: 12px; padding: 10px 12px; font-size: 0; gap: 4px; }
   .cy-fab i { font-size: 1.1rem; } .cy-fab .n { font-size: .7rem; }
-  .mensajeria { grid-template-columns: minmax(0, 1fr); height: calc(100vh - var(--barra) - 130px); }
+  .mensajeria { grid-template-columns: minmax(0, 1fr); height: calc(100vh - var(--barra) - 130px); height: calc(100dvh - var(--barra) - 130px); min-height: 360px; }
   .mensajeria.con-hilo .convs { display: none; }
   .mensajeria:not(.con-hilo) .hilo { display: none; }
   .acceso { grid-template-columns: minmax(0, 1fr); }
@@ -396,3 +396,8 @@ a:hover { text-decoration: underline; }
 .carga-saltar { position: absolute; right: 24px; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); background: rgba(255,255,255,.1);
   color: #fff; border: 1px solid rgba(255,255,255,.3); border-radius: 999px; padding: 6px 16px; font-weight: 600; }
 .carga-saltar:hover { background: rgba(255,255,255,.2); }
+
+/* En el chat abierto en celular, «Ver Cypher» sube para no tapar el botón de enviar */
+@media (max-width: 860px) {
+  body:has(.mensajeria.con-hilo) .cy-fab { bottom: calc(180px + env(safe-area-inset-bottom, 0px)); }
+}

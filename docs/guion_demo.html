@@ -1,0 +1,194 @@
+<title>Guion demo – UniRed (15 min)</title>
+<style>
+@page { size: Letter; margin: 18mm 17mm 18mm 17mm; }
+:root { --rojo:#C8102E; --negro:#1a1a1a; --gris:#5b5b5b; --linea:#d9d9d9; --suave:#f6f3ee; --amar:#FFC72C; }
+body { background:#fff; color:var(--negro); font: 10.5pt/1.5 "Segoe UI", Arial, sans-serif; padding: 0 16px; }
+h1 { font-size: 21pt; margin: 0 0 2px; letter-spacing:-.01em; }
+.sub { color: var(--gris); margin: 0 0 14px; }
+h2 { font-size: 13.5pt; margin: 22px 0 6px; padding-bottom: 4px; border-bottom: 2px solid var(--rojo); break-after: avoid; }
+h2 small { font-weight: 400; color: var(--gris); font-size: 10.5pt; }
+h3 { font-size: 11pt; margin: 14px 0 4px; break-after: avoid; }
+p { margin: 4px 0 8px; }
+ol { padding-left: 20px; margin: 4px 0; }
+li { margin: 0 0 9px; break-inside: avoid; }
+ul { padding-left: 18px; margin: 4px 0 8px; }
+ul li { margin-bottom: 4px; }
+.t { font-weight: 700; color: var(--rojo); font-variant-numeric: tabular-nums; }
+.dice { margin: 4px 0 0; padding: 4px 0 4px 11px; border-left: 3px solid var(--linea); font-style: italic; color: #333; }
+code { white-space: nowrap; font: 9.5pt Consolas, monospace; background: var(--suave); padding: 1px 4px; border-radius: 3px; }
+table { width: 100%; border-collapse: collapse; margin: 6px 0 10px; font-size: 9.8pt; }
+th, td { text-align: left; vertical-align: top; padding: 5px 7px; border-bottom: 1px solid var(--linea); }
+th { background: var(--suave); }
+.nuevo { display:inline-block; font-size: 8pt; font-weight: 700; color: var(--negro); background: var(--amar); padding: 0 5px; border-radius: 3px; margin-right: 4px; font-style: normal; vertical-align: 1px; }
+.caja { background: var(--suave); border-radius: 6px; padding: 8px 12px; margin: 8px 0; }
+.salto {}
+</style>
+
+<h1>Guion demo – UniRed (15 min)</h1>
+<p class="sub">Versión corregida, 10 nov 2026 · base: guion de Valerie del 9 nov. Lo marcado con <span class="nuevo">NUEVO</span> o <span class="nuevo">CAMBIO</span> es lo que se ajustó.</p>
+
+<p>Cinco bloques, uno por integrante, que siguen el guion del informe (sección 8). Las contraseñas no van aquí: están en el PDF de cuentas, que es de uso interno.</p>
+
+<div class="caja"><b>Qué cambió y por qué.</b>
+<ul>
+<li><b>Ya no se usa <code>cargar_datos.py --reset</code></b>: borraba la publicación con foto de Sebastián y la de video de Tomás, que no vienen en los scripts. Ahora se usa <code>preparar_demo.py restaurar</code>, que devuelve la base exactamente al estado de la demo.</li>
+<li><b>Se agregan 3 cosas que el enunciado pide y no se mostraban</b>: postularse a una oferta (POSTULA_A), vincular un usuario con habilidad, empresa y proyecto, y publicar una oferta con sus habilidades requeridas (PUBLICA + REQUIERE).</li>
+<li>Para que quepan, Sebastián pasa a 8:00–12:00 y Cristian a 12:00–15:00.</li>
+<li>Contraseñas: se guardan con <b>scrypt</b>, no PBKDF2.</li>
+<li>La consulta de Valerie en Neo4j Browser ahora trae siempre a Sebastián Mora.</li>
+</ul></div>
+
+<h2>Antes de empezar</h2>
+<p>Todo esto queda listo antes de que el profe dé la palabra, para que nadie inicie sesión ni escriba comandos durante la demo (excepto Mateo, que inicia sesión al comienzo a propósito para mostrar el logo).</p>
+<ul>
+<li><span class="nuevo">CAMBIO</span> <b>Después del último ensayo, restaurar los datos</b>: <code>app\venv\Scripts\python app\preparar_demo.py restaurar</code>. Vuelven las 2 invitaciones de Sebastián (Diego Ramírez y Nicolás Rojas) y se borra todo lo creado al ensayar (comentarios, publicaciones, Usuario Demo, la oferta nueva, postulaciones y mensajes). Se conservan la foto de Sebastián y el video de Tomás. <b>No usar <code>--reset</code>.</b></li>
+<li>Doble clic en <code>iniciar.bat</code> y copiar el link público (también está en <code>LINK_PUBLICO.txt</code>). Cambia cada vez que se enciende.</li>
+<li><b>Ventana 1</b> (Chrome, la que se proyecta): UniRed en la pantalla de inicio de sesión, sin sesión abierta.</li>
+<li><b>Ventana 2</b> (otro navegador, por ejemplo Edge): sesión de admin abierta en el panel. Tiene que ser otro navegador para que no se mezcle con la sesión de Sebastián.</li>
+<li>Pestaña de <b>Neo4j Browser</b> en <code>http://localhost:7474</code>, ya conectada, con <code>CALL db.schema.visualization()</code> escrito en la barra.</li>
+<li><b>Celular de Valerie</b>: sesión de Tomás Aguirre abierta en Mensajes, en la conversación con Sebastián, usando el link público.</li>
+<li>Una imagen lista en el escritorio para publicar (por ejemplo, una foto del grupo).</li>
+<li>Diapositivas: modelo del grafo (Figura 1 del informe) y SQL vs. Cypher con una línea de cuándo no usar grafos (secciones 7.1 y 7.3).</li>
+<li>Zoom del navegador al 125 % para que se lea desde atrás.</li>
+<li>Ensayo completo cronometrado, como máximo 15 minutos.</li>
+<li>Al terminar la revisión: <code>detener.bat</code>, porque mientras el link esté activo cualquiera puede entrar con las cuentas de prueba.</li>
+</ul>
+
+<h2>Reparto</h2>
+<p>Cada quien maneja el computador durante su bloque. El cambio de turno es una frase corta, ya incluida al final de cada bloque.</p>
+<table>
+<tr><th>Minutos</th><th>Quién</th><th>Bloque</th><th>Qué se proyecta</th></tr>
+<tr><td>0:00–2:00</td><td>Mateo</td><td>Intro, logo y modelo del grafo</td><td>Ventana 1 + diapositiva del modelo</td></tr>
+<tr><td>2:00–4:00</td><td>Valerie</td><td>La base de datos</td><td>Neo4j Browser + Ventana 2 (Panel › Base de datos)</td></tr>
+<tr><td>4:00–8:00</td><td>Sahory (con Valerie en el celular)</td><td>UniRed como Sebastián Mora</td><td>Ventana 1</td></tr>
+<tr><td><span class="nuevo">CAMBIO</span> 8:00–12:00</td><td>Sebastián</td><td>Panel: CRUD, relaciones, ofertas, consultas y recomendaciones</td><td>Ventana 2</td></tr>
+<tr><td><span class="nuevo">CAMBIO</span> 12:00–15:00</td><td>Cristian</td><td>Analítica, grafos vs. relacional y cierre</td><td>Ventana 2 + diapositivas</td></tr>
+</table>
+
+<h2 class="salto">Mateo · Intro y modelo <small>(0:00–2:00)</small></h2>
+<ol>
+<li><span class="t">0:00</span> – Presentar el problema. Con la Ventana 1 en la pantalla de inicio de sesión.
+<p class="dice">"Buenos días. Les presentamos UniRed, una red profesional tipo LinkedIn construida sobre Neo4j. En una red así lo importante no son los datos sueltos, sino cómo se conectan: quién conoce a quién, quién sabe qué y quién trabaja dónde. Eso es justo lo que una base de datos de grafos guarda y recorre de forma nativa."</p></li>
+<li><span class="t">0:30</span> – Iniciar sesión como Sebastián Mora (<code>sebastian@mail.com</code>) para que se vea el logo animado de la pantalla de carga.
+<p class="dice">"UniRed tiene dos caras sobre el mismo grafo: una red social donde las personas publican, se conectan y buscan empleo, y un panel de administración que cubre punto por punto lo que pide el enunciado."</p></li>
+<li><span class="t">0:50</span> – Pasar a la diapositiva del modelo (Figura 1).
+<p class="dice">"Los cinco nodos del enunciado son Usuario, Empresa, Habilidad, Proyecto y Oferta, unidos por las relaciones que pide: CONECTA_CON, TRABAJA_EN, TIENE_HABILIDAD, PARTICIPA_EN, PUBLICA, REQUIERE y POSTULA_A. Agregamos USA_TECNOLOGIA para saber qué proyectos comparten tecnologías."</p>
+<p class="dice">"En rojo está la capa social: instituciones, publicaciones, comentarios, reacciones, invitaciones y mensajes. La agregamos sin tocar el núcleo del enunciado, y eso ya muestra una ventaja del grafo: el esquema es flexible."</p></li>
+<li><span class="t">1:30</span> – Dos decisiones de diseño.
+<p class="dice">"La habilidad es un nodo y no un texto, así conecta usuarios, ofertas y proyectos. Y los datos de la relación viven en la relación: el nivel está en TIENE_HABILIDAD, el estado de la postulación en POSTULA_A y el tipo de reacción en REACCIONO."</p></li>
+<li><span class="t">1:55</span> – Pasar el turno.
+<p class="dice">"Valerie nos muestra cómo se ve esto dentro de la base de datos."</p></li>
+</ol>
+
+<h2>Valerie · La base de datos <small>(2:00–4:00)</small></h2>
+<ol>
+<li><span class="t">2:00</span> – Neo4j Browser. Cambiar a la pestaña de <code>http://localhost:7474</code>.
+<p class="dice">"Neo4j Browser cumple el papel que MySQL Workbench tiene en el modelo relacional: desde aquí vemos y consultamos la base."</p></li>
+<li><span class="t">2:10</span> – Ejecutar <code>CALL db.schema.visualization()</code> (Ctrl+Enter).
+<p class="dice">"Este es el modelo real que guarda la base, el equivalente al diagrama EER: las etiquetas de nodo y los tipos de relación que existen."</p></li>
+<li><span class="t">2:35</span> – <span class="nuevo">CAMBIO</span> Ejecutar <code>MATCH (u:Usuario {nombre:'Sebastián Mora'})-[r]-(x) RETURN u, r, x</code>. Hacer doble clic en uno de sus contactos para expandir sus vecinos.
+<p class="dice">"La base tiene 20 usuarios, 6 empresas, 16 habilidades, 8 proyectos y 10 ofertas, además de publicaciones y mensajes. Aquí está Sebastián con su empresa, sus habilidades, sus estudios y sus contactos; si expando a un contacto, aparecen los suyos. No hay tablas ni JOIN: cada nodo apunta directamente a sus relaciones."</p></li>
+<li><span class="t">3:10</span> – Ventana 2, Panel › Base de datos.
+<p class="dice">"El panel de la app muestra lo mismo: cuántos nodos hay por etiqueta, las relaciones por tipo y una consola Cypher."</p></li>
+<li><span class="t">3:25</span> – En la consola, escribir <code>CREATE (:Usuario {nombre:'Prueba'})</code> y ejecutarlo: Neo4j lo rechaza.
+<p class="dice">"La consola abre la sesión en modo solo lectura, así que Neo4j rechaza CREATE, SET o DELETE desde aquí. Además, todas las consultas de la app van con parámetros, así que no hay inyección de Cypher."</p></li>
+<li><span class="t">3:50</span> – Volver a la Ventana 1, tomar el celular y pasar el turno.
+<p class="dice">"Ahora Sahory va a usar UniRed como Sebastián, y yo voy a ser Tomás desde mi celular."</p></li>
+</ol>
+
+<h2 class="salto">Sahory · UniRed como Sebastián Mora <small>(4:00–8:00)</small></h2>
+<p>Sebastián Mora es ingeniero de datos en AgroSmart. Valerie lo acompaña desde el celular como Tomás Aguirre para el chat en vivo.</p>
+<ol>
+<li><span class="t">4:00</span> – Feed. Mostrar las publicaciones (la foto de Sebastián y el video de Tomás), "Personas que quizá conozcas" y "Habilidades más pedidas" a los lados.
+<p class="dice">"Así ve UniRed una persona real. Todo lo que aparece aquí sale de recorrer el grafo desde Sebastián."</p></li>
+<li><span class="t">4:20</span> – Reaccionar y comentar. Abrir la paleta de reacciones de una publicación, elegir "Celebrar" y escribir un comentario corto.</li>
+<li><span class="t">4:40</span> – Abrir "Ver Cypher" (botón flotante) y señalar las consultas de la última acción.
+<p class="dice">"Este botón está en todas las pantallas y muestra lo que la app le mandó a Neo4j. La reacción es una relación REACCIONO con la propiedad tipo, y el comentario es un nodo unido con ESCRIBIO y SOBRE."</p></li>
+<li><span class="t">5:00</span> – Publicar un texto corto con la imagen del escritorio.
+<p class="dice">"Publicar crea un nodo Publicacion unido a Sebastián con PUBLICO."</p></li>
+<li><span class="t">5:20</span> – Mi red. Mostrar las 2 invitaciones pendientes y aceptar la de Diego Ramírez.
+<p class="dice">"Una invitación es una relación SOLICITA_CONEXION. Al aceptarla se borra y se crea CONECTA_CON. Por eso las rutas del enunciado no cuentan invitaciones: una invitación pendiente no es una conexión real."</p>
+<p>Señalar una sugerencia de contacto y su motivo: <span class="dice" style="border:0;padding:0">"El puntaje suma contactos en común, la misma universidad y habilidades compartidas, todo recorriendo el grafo."</span></p></li>
+<li><span class="t">6:00</span> – Perfil de Andrés Castro (sale como contacto de 3.<sup>er</sup> grado).
+<p class="dice">"El perfil muestra el grado de conexión y 'Cómo llegas a…': el camino real de contactos, calculado con shortestPath cada vez que se abre un perfil. También muestra los contactos en común."</p></li>
+<li><span class="t">6:30</span> – Empleos. Mostrar el porcentaje de ajuste, las habilidades resaltadas y cuántos contactos trabajan en cada empresa.
+<p class="dice">"Las ofertas se ordenan por cuántas de las habilidades que piden con REQUIERE tiene Sebastián."</p>
+<p><span class="nuevo">NUEVO</span> Pulsar <b>Postularme</b> en "Científico de Datos" (67 % de ajuste).</p>
+<p class="dice">"Postularse crea la relación POSTULA_A entre Sebastián y la oferta, con el estado y la fecha guardados en la propia relación. La empresa ve a sus postulantes recorriendo esa relación al revés."</p></li>
+<li><span class="t">7:10</span> – Chat en vivo. Abrir Mensajes en la conversación con Tomás. Valerie escribe desde el celular: "Hola Sebastián, te escribo desde el celular". Sahory responde: "Recibido en vivo".
+<p class="dice">"Solo se puede escribir a contactos, porque la consulta exige CONECTA_CON. <span class="nuevo">NUEVO</span> Cada mensaje es un nodo: Sebastián –ENVIO→ Mensaje –PARA→ Tomás. La página pregunta cada 3 segundos si hay mensajes nuevos, y una consulta borra los que tienen más de 24 horas para no llenar la base."</p></li>
+<li><span class="t">7:55</span> – Pasar el turno.
+<p class="dice">"Eso es lo que ve un usuario. Ahora Sebastián nos muestra el panel que cubre el enunciado."</p></li>
+</ol>
+
+<h2 class="salto">Sebastián · Panel de administración <small>(8:00–12:00)</small></h2>
+<p>Todo en la Ventana 2, con la sesión de admin. En cada paso se abre "Ver Cypher" unos segundos.</p>
+<ol>
+<li><span class="t">8:00</span> – CRUD en Panel › Usuarios. Crear "Usuario Demo" (<code>demo@unired.co</code>, Barranquilla) y editarle la ciudad. <b>Todavía no se elimina.</b>
+<p class="dice">"Crear es un CREATE de un nodo Usuario y editar es un SET sobre sus propiedades."</p></li>
+<li><span class="t">8:25</span> – <span class="nuevo">NUEVO</span> Panel › Relaciones, con Usuario Demo:
+<ul>
+<li><b>Asignar habilidad</b>: Python, nivel 4.</li>
+<li><b>Vincular a empresa</b>: TechNova, cargo "Analista de datos".</li>
+<li><b>Unir a proyecto</b>: cualquier proyecto de la lista.</li>
+</ul>
+<p class="dice">"Así se vincula un usuario con habilidades, empresas y proyectos: cada vínculo es una relación con sus datos dentro, como el nivel en TIENE_HABILIDAD o el cargo en TRABAJA_EN."</p></li>
+<li><span class="t">9:00</span> – Volver a Usuarios y eliminar a Usuario Demo.
+<p class="dice">"Ahora que tiene relaciones se ve por qué usamos DETACH DELETE: borra el nodo junto con todas sus relaciones. Sin DETACH, Neo4j no deja borrar un nodo conectado."</p></li>
+<li><span class="t">9:15</span> – <span class="nuevo">NUEVO</span> Panel › Ofertas. Publicar "Analista de datos junior" en TechNova, pidiendo Python y SQL (Ctrl + clic para elegir las dos).
+<p class="dice">"Publicar una oferta crea el nodo Oferta, la relación PUBLICA desde la empresa y una relación REQUIERE por cada habilidad. Las empresas se registran igual, en Panel › Empresas."</p></li>
+<li><span class="t">9:45</span> – Consultas del enunciado: ruta más corta. De Tomás Aguirre a TechNova; se dibuja el camino.
+<p class="dice">"En SQL esto sería una consulta recursiva. En Cypher es shortestPath en una línea, y solo recorre relaciones profesionales."</p></li>
+<li><span class="t">10:20</span> – Candidatos para una oferta. Elegir la oferta que se acaba de publicar.
+<p class="dice">"El puntaje combina 70 % de las habilidades que pide la oferta y 30 % de conexiones con gente que trabaja en esa empresa. La oferta tiene un minuto de creada y ya tiene candidatos, porque todo sale de recorrer el grafo."</p></li>
+<li><span class="t">10:55</span> – Pasar rápido por las otras cuatro (unos 5 segundos cada una): habilidades similares (índice de Jaccard), contactos en común, proyectos que comparten tecnologías o miembros y habilidades más demandadas.</li>
+<li><span class="t">11:20</span> – Recomendaciones para Ana Torres, que tiene 6 contactos.
+<p class="dice">"Contactos sugeridos son amigos de amigos; empleos, ofertas que piden sus habilidades; y colaboradores, personas en proyectos con tecnologías parecidas."</p></li>
+<li><span class="t">11:55</span> – Pasar el turno.
+<p class="dice">"Cristian nos muestra la analítica de la red."</p></li>
+</ol>
+
+<h2>Cristian · Analítica, grafos vs. relacional y cierre <small>(12:00–15:00)</small></h2>
+<ol>
+<li><span class="t">12:00</span> – Panel › Analítica (Ventana 2). Abrir "Ver Cypher" un momento.
+<p class="dice">Influyentes: "Los usuarios más influyentes se miden por grado, es decir, número de conexiones, y por PageRank, que también mide qué tan conectados están tus contactos."</p></li>
+<li><span class="t">12:30</span> – Comunidades. Señalar los grupos de colores en el grafo.
+<p class="dice">"Cada color es una comunidad: usuarios más conectados entre sí que con el resto. Se calculan con modularidad sobre las relaciones CONECTA_CON; con el plugin GDS de Neo4j se haría con Louvain."</p></li>
+<li><span class="t">13:00</span> – Habilidades más demandadas y la brecha.
+<p class="dice">"La brecha compara cuántas ofertas piden una habilidad con cuántos profesionales la tienen. Todo esto sale de recorrer el grafo, sin tablas de resumen aparte."</p></li>
+<li><span class="t">13:25</span> – Diapositiva de SQL vs. Cypher (sección 7.1: amigos de amigos de amigos).
+<p class="dice">"En SQL, tres niveles de contactos son tres JOIN sobre la misma tabla, y el camino más corto necesita WITH RECURSIVE. En Cypher la profundidad es un parámetro y shortestPath es nativo."</p>
+<p class="dice">"Pero el grafo no siempre gana: para reportes con sumas y promedios sobre toda una tabla, o transacciones con reglas estrictas como en un banco, el relacional es mejor. En un sistema real lo normal es usar los dos."</p></li>
+<li><span class="t">14:15</span> – Conclusiones.
+<p class="dice">"Primero: las preguntas de una red profesional son recorridos de relaciones, y ahí el grafo es natural. Segundo: agregamos toda la capa social sin tocar el modelo del enunciado. Tercero: importa modelar bien el significado de cada relación; una invitación no es una conexión."</p></li>
+<li><span class="t">14:45</span> – Cierre.
+<p class="dice">"Eso es UniRed. Muchas gracias, quedamos atentos a sus preguntas."</p></li>
+</ol>
+
+<h2 class="salto">Si algo falla</h2>
+<table>
+<tr><th style="width:34%">Problema</th><th>Qué hacer</th></tr>
+<tr><td>El link público no abre</td><td>En el PC, usar <code>http://localhost:8000</code>; el celular de Valerie queda sin chat, así que se muestra la conversación ya cargada.</td></tr>
+<tr><td>El mensaje del celular no aparece</td><td>Recargar Mensajes en la Ventana 1; si sigue sin llegar, seguir con la conversación que ya existe.</td></tr>
+<tr><td>Sebastián ya no tiene invitaciones</td><td>No se restauró después del ensayo. Correr <code>app\venv\Scripts\python app\preparar_demo.py restaurar</code> (tarda segundos); si no hay tiempo, explicar SOLICITA_CONEXION con la figura del informe.</td></tr>
+<tr><td>Ya existe "Usuario Demo" o la oferta "Analista de datos junior"</td><td>No se restauró después del ensayo: usar otro nombre o correo, o restaurar como arriba.</td></tr>
+<tr><td>Neo4j o la app se caen</td><td>Ejecutar <code>iniciar.bat</code> otra vez (tarda unos segundos); mientras tanto, el que tiene el turno sigue con las figuras del informe.</td></tr>
+<tr><td>Se acaba el tiempo</td><td>Recortar en este orden: publicar la foto (Sahory), recomendaciones (Sebastián), unir a proyecto (Sebastián) y el intento de CREATE en la consola (Valerie). <b>No recortar</b> postularse, relaciones ni publicar la oferta: son puntos del enunciado.</td></tr>
+</table>
+
+<h2>Preguntas probables del profe</h2>
+<p>Las responde quien tenga el tema más cerca; entre paréntesis va quién lo presentó.</p>
+<table>
+<tr><th style="width:38%">Pregunta</th><th>Respuesta corta</th></tr>
+<tr><td>¿Qué es la adyacencia sin índices? (Valerie)</td><td>Cada nodo apunta directo a sus relaciones, así que pasar al vecino no requiere buscar en un índice ni hacer JOIN.</td></tr>
+<tr><td>¿Qué es el driver? (Valerie)</td><td>La librería de Python que conecta la app con Neo4j: envía las consultas Cypher por el protocolo Bolt y devuelve los resultados.</td></tr>
+<tr><td>¿Por qué CONECTA_CON tiene dirección si la amistad es mutua? (Mateo)</td><td>En Neo4j toda relación tiene dirección. Se guarda en un solo sentido y se consulta sin flecha para no duplicar aristas.</td></tr>
+<tr><td>¿Por qué la invitación es otra relación? (Sahory)</td><td>Porque todavía no es una conexión. SOLICITA_CONEXION se borra al aceptarla y se crea CONECTA_CON; así las rutas no pasan por invitaciones pendientes.</td></tr>
+<tr><td>¿Cómo funcionan los mensajes? (Sahory)</td><td><span class="nuevo">NUEVO</span> Cada mensaje es un nodo Mensaje unido con ENVIO y PARA. Solo se crea si existe CONECTA_CON. La página consulta cada 3 segundos si hay nuevos, y cada 10 minutos (y al abrir Mensajes) se borran los de más de 24 horas con <code>DETACH DELETE</code>.</td></tr>
+<tr><td>¿Cómo guardan las contraseñas? (Sebastián)</td><td><span class="nuevo">CAMBIO</span> Con hash <b>scrypt</b> (werkzeug), nunca en texto plano. Además hay bloqueo tras 8 intentos fallidos y token CSRF en los formularios.</td></tr>
+<tr><td>¿Cómo evitan la inyección de Cypher? (Sebastián)</td><td>Todas las consultas usan parámetros, y la consola del panel abre la sesión en modo solo lectura.</td></tr>
+<tr><td>¿Cómo detectan comunidades? (Cristian)</td><td>Con modularidad voraz de networkx sobre CONECTA_CON. Con el plugin GDS sería Louvain dentro de Neo4j; está comentado en el script.</td></tr>
+<tr><td>¿Dónde se guardan las notificaciones? (Sahory)</td><td>No se guardan: se calculan con una consulta UNION ALL sobre reacciones, comentarios e invitaciones, para no duplicar datos.</td></tr>
+<tr><td>¿Cuándo no usarían grafos? (Cristian)</td><td>Reportes con sumas sobre toda una tabla, datos tabulares, integridad muy estricta y repartir datos entre servidores.</td></tr>
+<tr><td>¿Midieron tiempos? (Cristian)</td><td>No; la comparación es cualitativa. Se podría medir con un grafo sintético grande y una consulta de 3 a 5 niveles en Cypher y en SQL.</td></tr>
+</table>
